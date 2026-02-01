@@ -55,28 +55,24 @@ interface Navbar1Props {
 const Navbar = ({
   logo = {
     url: "/",
-    src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
-    alt: "logo",
-    title: "Next Blog",
+    src: "",
+    alt: "SkillBridge Logo",
+    title: "SkillBridge",
   },
   menu = [
     { title: "Home", url: "/" },
     {
-      title: "Blogs",
-      url: "/blogs",
+      title: "Find Tutors",
+      url: "/tutors",
     },
     {
-      title: "About",
-      url: "/about",
-    },
-    {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "How it Works",
+      url: "/#how-it-works",
     },
   ],
   auth = {
-    login: { title: "Login", url: "/login" },
-    signup: { title: "Register", url: "/register" },
+    login: { title: "Log In", url: "/login" },
+    signup: { title: "Get Started", url: "/register" },
   },
   className,
 }: Navbar1Props) => {
@@ -88,12 +84,14 @@ const Navbar = ({
           <div className="flex items-center gap-6">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter">
+              {logo.src && (
+                <img
+                  src={logo.src}
+                  className="max-h-8 dark:invert"
+                  alt={logo.alt}
+                />
+              )}
+              <span className="text-xl font-bold tracking-tighter bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                 {logo.title}
               </span>
             </a>
@@ -136,13 +134,20 @@ const Navbar = ({
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </a>
+                    <SheetTitle>
+                      <a href={logo.url} className="flex items-center gap-2">
+                        {logo.src && (
+                          <img
+                            src={logo.src}
+                            className="max-h-8 dark:invert"
+                            alt={logo.alt}
+                          />
+                        )}
+                        <span className="text-xl font-bold tracking-tighter bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                          {logo.title}
+                        </span>
+                      </a>
+                    </SheetTitle>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
