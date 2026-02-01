@@ -66,9 +66,9 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
   return (
     <Card {...props}>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
+        <CardTitle>Join SkillBridge Today</CardTitle>
         <CardDescription>
-          Enter your information below to create your account
+          Create your account and start learning from expert tutors
         </CardDescription>
       </CardHeader>
       <CardContent>
