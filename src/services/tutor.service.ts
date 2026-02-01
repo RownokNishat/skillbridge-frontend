@@ -1,5 +1,7 @@
-import { proxy } from "@/proxy";
+import { env } from "@/env";
 import { Category, TutorProfile, TutorFilters } from "@/types";
+
+const API_URL = env.API_URL;
 
 interface ApiResponse<T> {
   success: boolean;
@@ -19,72 +21,108 @@ export const tutorService = {
   getTutors: async (
     filters?: TutorFilters,
     options?: RequestInit
-  ): Promise<ApiResponse<PaginatedResponse<TutorProfile>>> => {
-    const params = new URLSearchParams();
-    if (filters?.categoryId) params.append("categoryId", filters.categoryId);
-    if (filters?.minRate) params.append("minRate", filters.minRate.toString());
-    if (filters?.maxRate) params.append("maxRate", filters.maxRate.toString());
-    if (filters?.minRating)
-      params.append("minRating", filters.minRating.toString());
-    if (filters?.search) params.append("search", filters.search);
-    if (filters?.sortBy) params.append("sortBy", filters.sortBy);
-    if (filters?.sortOrder) params.append("sortOrder", filters.sortOrder);
+  ): Promise<{ data: ApiResponse<PaginatedResponse<TutorProfile>> | null; error: any }> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.categoryId) params.append("categoryId", filters.categoryId);
+      if (filters?.minRate) params.append("minRate", filters.minRate.toString());
+      if (filters?.maxRate) params.append("maxRate", filters.maxRate.toString());
+      if (filters?.minRating)
+        params.append("minRating", filters.minRating.toString());
+      if (filters?.search) params.append("search", filters.search);
+      if (filters?.sortBy) params.append("sortBy", filters.sortBy);
+      if (filters?.sortOrder) params.append("sortOrder", filters.sortOrder);
 
-    const queryString = params.toString();
-    const url = `/api/tutors${queryString ? `?${queryString}` : ""}`;
+      const queryString = params.toString();
+      const url = `${API_URL}/tutors${queryString ? `?${queryString}` : ""}`;
 
-    return proxy(url, options);
+      const res = await fetch(url, options);
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to fetch tutors" } };
+    }
   },
 
   // Get single tutor by ID
   getTutorById: async (
     id: string,
     options?: RequestInit
-  ): Promise<ApiResponse<TutorProfile>> => {
-    return proxy(`/api/tutors/${id}`, options);
+  ): Promise<{ data: ApiResponse<TutorProfile> | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutors/${id}`, options);
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to fetch tutor" } };
+    }
   },
 
   // Get featured tutors
   getFeaturedTutors: async (
     options?: RequestInit
-  ): Promise<ApiResponse<TutorProfile[]>> => {
-    return proxy("/api/tutors?featured=true&limit=6", options);
+  ): Promise<{ data: ApiResponse<TutorProfile[]> | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutors?featured=true&limit=6`, options);
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to fetch featured tutors" } };
+    }
   },
 
   // Get all categories
   getCategories: async (
     options?: RequestInit
-  ): Promise<ApiResponse<Category[]>> => {
-    return proxy("/api/categories", options);
+  ): Promise<{ data: ApiResponse<Category[]> | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/categories`, options);
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to fetch categories" } };
+    }
   },
 
   // Update tutor profile (for tutors)
   updateTutorProfile: async (
     data: Partial<TutorProfile>,
     options?: RequestInit
-  ): Promise<ApiResponse<TutorProfile>> => {
-    return proxy("/api/tutor/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      ...options,
-    });
+  ): Promise<{ data: ApiResponse<TutorProfile> | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutor/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        ...options,
+      });
+      const responseData = await res.json();
+      return { data: responseData, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to update profile" } };
+    }
   },
 
   // Update tutor availability
   updateAvailability: async (
     availability: any[],
     options?: RequestInit
-  ): Promise<ApiResponse<any>> => {
-    return proxy("/api/tutor/availability", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ availability }),
-      ...options,
-    });
+  ): Promise<{ data: ApiResponse<any> | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutor/availability`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ availability }),
+        ...options,
+      });
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to update availability" } };
+    }
   },
 };
