@@ -61,7 +61,10 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
         // Persist token in cookie and user in localStorage for session
         try {
-          const token = (data as any)?.token || (data as any)?.accessToken || (data as any)?.session?.access_token;
+          const token =
+            (data as any)?.token ||
+            (data as any)?.accessToken ||
+            (data as any)?.session?.access_token;
           if (token && typeof window !== "undefined") {
             const maxAge = 7 * 24 * 60 * 60; // 7 days
             document.cookie = `auth_token=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
