@@ -8,6 +8,8 @@ export async function proxy(request: NextRequest) {
   let isAuthenticated = false;
   let isAdmin = false;
 
+  console.log("Middleware executing for path:", pathname);
+
   const { data } = await userService.getSession();
 
   if (data) {

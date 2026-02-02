@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -35,6 +36,8 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
     console.log(data);
   };
+
+  const router = useRouter();
 
   const form = useForm({
     defaultValues: {
@@ -55,6 +58,41 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         }
 
         toast.success("User Logged in Successfully", { id: toastId });
+
+        // Persist token in cookie and user in localStorage for session
+        try {
+          const token = (data as any)?.token || (data as any)?.accessToken || (data as any)?.session?.access_token;
+          if (token && typeof window !== "undefined") {
+            const maxAge = 7 * 24 * 60 * 60; // 7 days
+            document.cookie = `auth_token=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+          }
+
+          if ((data as any)?.user && typeof window !== "undefined") {
+            localStorage.setItem("sb_user", JSON.stringify((data as any).user));
+          }
+        } catch (e) {
+          // non-fatal
+          // eslint-disable-next-line no-console
+          console.warn("Persist auth failed", e);
+        }
+
+        // Route user by role (handle different casing)
+        if ((data as any)?.user?.role) {
+          const role = String((data as any).user.role).toLowerCase();
+          switch (role) {
+            case "admin":
+              router.push("/admin");
+              break;
+            case "tutor":
+              router.push("/tutor/dashboard");
+              break;
+            case "student":
+              router.push("/dashboard");
+              break;
+            default:
+              router.push("/dashboard");
+          }
+        }
       } catch (err) {
         toast.error("Something went wrong, please try again.", { id: toastId });
       }
