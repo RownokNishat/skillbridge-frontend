@@ -77,7 +77,7 @@ export const adminService = {
         config.next = { revalidate: options.revalidate };
       }
 
-      const res = await fetch(`${API_URL}/admin/bookings`, config);
+      const res = await fetch(`${API_URL}/bookings`, config);
 
       if (!res.ok) {
         throw new Error("Failed to fetch bookings");

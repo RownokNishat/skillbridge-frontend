@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { adminService } from "@/services/admin.service";
 import { Search, Calendar, Clock, DollarSign, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-interface Booking {
-  id: string;
+// Update Interface to match UI needs
+interface UI_Booking {
+  id: number;
   studentName: string;
   tutorName: string;
-  subject: string;
+  subject: string; // Will fallback to 'General' if not in DB
   date: string;
   time: string;
   status: string;
@@ -21,8 +23,8 @@ interface Booking {
 }
 
 export default function AdminBookingsPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<UI_Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<UI_Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,14 +43,16 @@ export default function AdminBookingsPage() {
       filtered = filtered.filter(
         (booking) =>
           booking.studentName.toLowerCase().includes(query) ||
-          booking.tutorName.toLowerCase().includes(query) ||
-          booking.subject.toLowerCase().includes(query),
+          booking.tutorName.toLowerCase().includes(query),
       );
     }
 
     // Filter by status
     if (filterStatus !== "all") {
-      filtered = filtered.filter((booking) => booking.status === filterStatus);
+      filtered = filtered.filter(
+        (booking) =>
+          booking.status.toLowerCase() === filterStatus.toLowerCase(),
+      );
     }
 
     setFilteredBookings(filtered);
@@ -64,85 +68,68 @@ export default function AdminBookingsPage() {
 
     if (error) {
       setError(error.message);
+      toast.error("Failed to fetch bookings");
       setLoading(false);
       return;
     }
 
-    setBookings(data.data || []);
-    setFilteredBookings(data.data || []);
+    // MAP Backend Data (Nested) to UI Data (Flat)
+    const mappedBookings: UI_Booking[] = (data.data || []).map((b: any) => {
+      const start = new Date(b.startTime);
+      const end = new Date(b.endTime);
+
+      // Calculate duration in hours
+      const durationHours =
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      // Calculate estimated amount (Rate * Duration)
+      const amount = b.tutor?.hourlyRate
+        ? Math.round(b.tutor.hourlyRate * durationHours)
+        : 0;
+
+      return {
+        id: b.id,
+        studentName: b.student?.name || "Unknown Student",
+        tutorName: b.tutor?.name || "Unknown Tutor",
+        subject: "Tutoring Session", // Default subject
+        date: start.toISOString(),
+        time: `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+        status: b.status,
+        amount: amount,
+        createdAt: b.createdAt,
+      };
+    });
+
+    setBookings(mappedBookings);
+    setFilteredBookings(mappedBookings);
     setLoading(false);
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
+    switch (status.toUpperCase()) {
+      case "CONFIRMED":
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-      case "completed":
+      case "COMPLETED":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
-      case "cancelled":
+      case "CANCELLED":
         return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
       default:
         return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300";
     }
   };
 
   const totalRevenue = bookings
-    .filter((b) => b.status === "completed")
+    .filter((b) => b.status === "COMPLETED")
     .reduce((sum, b) => sum + b.amount, 0);
 
   if (loading) {
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">
-            All{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Bookings
-            </span>
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            View and manage all platform bookings
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold">Manage Bookings</h1>
         <Card className="border-2">
           <CardContent className="p-12 text-center">
-            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
-              Loading bookings...
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">
-            All{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Bookings
-            </span>
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            View and manage all platform bookings
-          </p>
-        </div>
-        <Card className="border-2 border-red-200 dark:border-red-800">
-          <CardContent className="p-12 text-center">
-            <div className="text-red-600 dark:text-red-400 mb-4">
-              <p className="text-lg font-semibold">Error loading bookings</p>
-              <p className="text-sm">{error}</p>
-            </div>
-            <Button
-              onClick={fetchBookings}
-              variant="outline"
-              className="border-red-200 dark:border-red-800"
-            >
-              Try Again
-            </Button>
+            Loading bookings...
           </CardContent>
         </Card>
       </div>
@@ -153,83 +140,71 @@ export default function AdminBookingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold mb-2">
-          All{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Bookings
-          </span>
+          All <span className="text-primary">Bookings</span>
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground">
           View and manage all platform bookings
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid md:grid-cols-4 gap-6">
         <Card className="border-2">
           <CardContent className="p-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Total Bookings
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {bookings.length}
+            <p className="text-sm text-muted-foreground mb-1">Total Bookings</p>
+            <p className="text-3xl font-bold">{bookings.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-2">
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground mb-1">Confirmed</p>
+            <p className="text-3xl font-bold text-blue-600">
+              {bookings.filter((b) => b.status === "CONFIRMED").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-2">
           <CardContent className="p-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Confirmed
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {bookings.filter((b) => b.status === "confirmed").length}
+            <p className="text-sm text-muted-foreground mb-1">Completed</p>
+            <p className="text-3xl font-bold text-green-600">
+              {bookings.filter((b) => b.status === "COMPLETED").length}
             </p>
           </CardContent>
         </Card>
         <Card className="border-2">
           <CardContent className="p-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Completed
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {bookings.filter((b) => b.status === "completed").length}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-2">
-          <CardContent className="p-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Total Revenue
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-sm text-muted-foreground mb-1">Est. Revenue</p>
+            <p className="text-3xl font-bold text-primary">
               ${totalRevenue.toLocaleString()}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filter */}
+      {/* Filter Bar */}
       <div className="flex items-center gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             type="text"
-            placeholder="Search by student, tutor, or subject..."
+            placeholder="Search by student or tutor..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-12 border-2"
+            className="pl-10"
           />
         </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="h-12 px-4 border-2 rounded-md bg-background"
+          className="h-10 px-3 py-2 border rounded-md bg-background text-sm ring-offset-background focus:ring-2 focus:ring-ring"
         >
           <option value="all">All Status</option>
+          <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <Button onClick={fetchBookings} variant="outline" className="border-2">
+        <Button onClick={fetchBookings} variant="outline">
           Refresh
         </Button>
       </div>
@@ -241,7 +216,7 @@ export default function AdminBookingsPage() {
         </CardHeader>
         <CardContent>
           {filteredBookings.length === 0 ? (
-            <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+            <div className="text-center py-12 text-muted-foreground">
               No bookings found
             </div>
           ) : (
@@ -249,22 +224,23 @@ export default function AdminBookingsPage() {
               {filteredBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="p-4 border-2 rounded-lg hover:border-blue-500 transition-colors"
+                  className="p-4 border rounded-lg hover:border-primary/50 transition-colors bg-card"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                         {booking.studentName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {booking.subject}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          <User className="w-4 h-4" />
-                          <span>
-                            {booking.studentName} → {booking.tutorName}
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{booking.tutorName}</h3>
+                          <span className="text-xs text-muted-foreground">
+                            (Tutor)
                           </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                          <User className="w-3 h-3" />
+                          <span>Student: {booking.studentName}</span>
                         </div>
                       </div>
                     </div>
@@ -272,20 +248,21 @@ export default function AdminBookingsPage() {
                       {booking.status}
                     </Badge>
                   </div>
-                  <div className="grid md:grid-cols-4 gap-4 pl-16">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pl-14 mt-4 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="w-4 h-4" />
                       <span>{new Date(booking.date).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="w-4 h-4" />
                       <span>{booking.time}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <DollarSign className="w-4 h-4" />
-                      <span>${booking.amount}</span>
+                      <span>${booking.amount} (Est.)</span>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-muted-foreground text-xs flex items-center">
                       Booked: {new Date(booking.createdAt).toLocaleDateString()}
                     </div>
                   </div>
