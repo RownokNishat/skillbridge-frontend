@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { tutorService } from "@/services/tutor.service";
 import { categoryService } from "@/services/category.service";
+import { api } from "@/lib/api";
 import { Save, X, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -57,33 +57,21 @@ export default function CreateTutorProfilePage() {
 
     setSaving(true);
 
-    const { error } = await tutorService.updateTutorProfile({
-      bio: bio.trim(),
-      hourlyRate: parseFloat(hourlyRate),
-      experience: parseInt(experience),
-      categoryIds: selectedCategories,
-    } as any);
-
-    if (error) {
-      toast.error(error.message);
-      setSaving(false);
-      return;
-    }
-
-    toast.success("Profile created successfully");
-    setSaving(false);
-
-    // Check status again to see next step
     try {
-      const statusRes = await fetch(
-        "http://localhost:5000/api/register/status",
-        {
-          credentials: "include",
-        },
-      );
+      // Use setup-profile endpoint for first-time profile creation
+      await api.post("/api/register/setup-profile", {
+        bio: bio.trim(),
+        hourlyRate: parseFloat(hourlyRate),
+        experience: parseInt(experience),
+        categoryIds: selectedCategories,
+      });
 
-      if (statusRes.ok) {
-        const statusData = await statusRes.json();
+      toast.success("Profile created successfully");
+      setSaving(false);
+
+      // Check status again to see next step
+      try {
+        const statusData = await api.get("/api/register/status");
         const nextStep = statusData?.data?.nextStep;
 
         if (nextStep === "SET_AVAILABILITY") {
@@ -91,11 +79,12 @@ export default function CreateTutorProfilePage() {
         } else {
           router.push("/tutor/dashboard");
         }
-      } else {
+      } catch (err) {
         router.push("/tutor/dashboard");
       }
-    } catch (err) {
-      router.push("/tutor/dashboard");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create profile");
+      setSaving(false);
     }
   };
 

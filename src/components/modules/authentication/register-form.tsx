@@ -17,7 +17,9 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useForm } from "@tanstack/react-form";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import * as z from "zod";
 import { GraduationCap, Users } from "lucide-react";
@@ -32,6 +34,8 @@ const formSchema = z.object({
 });
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const router = useRouter();
+
   const handleGoogleLogin = async () => {
     const data = authClient.signIn.social({
       provider: "google",
@@ -54,30 +58,25 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Creating user");
       try {
-        const response = await fetch("http://localhost:5000/api/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            email: value.email,
-            password: value.password,
-            name: value.name,
-            role: value.role,
-          }),
+        const data = await api.post("/api/register", {
+          email: value.email,
+          password: value.password,
+          name: value.name,
+          role: value.role,
         });
 
-        const data = await response.json();
+        toast.success("User Created Successfully! Please login to continue.", {
+          id: toastId,
+        });
 
-        if (!response.ok || !data.success) {
-          toast.error(data.message || "Registration failed", { id: toastId });
-          return;
-        }
-
-        toast.success("User Created Successfully", { id: toastId });
-      } catch (err) {
-        toast.error("Something went wrong, please try again.", { id: toastId });
+        // Redirect to login page after successful registration
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
+      } catch (err: any) {
+        toast.error(err.message || "Something went wrong, please try again.", {
+          id: toastId,
+        });
       }
     },
   });

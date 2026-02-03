@@ -28,7 +28,6 @@ export async function proxy(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("User authenticated:", data);
 
     const userRole = data?.data?.user?.role?.toUpperCase();
 

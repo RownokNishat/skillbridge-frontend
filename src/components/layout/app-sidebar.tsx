@@ -33,6 +33,8 @@ export function AppSidebar({
       routes = adminRoutes;
       break;
     case "student":
+      routes = userRoutes;
+      break;
     case "user":
       routes = userRoutes;
       break;

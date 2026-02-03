@@ -6,15 +6,15 @@ export const userRoutes: Route[] = [
     items: [
       {
         title: "Overview",
-        url: "/dashboard",
+        url: "/student",
       },
       {
         title: "My Bookings",
-        url: "/dashboard/bookings",
+        url: "/student/bookings",
       },
       {
         title: "My Profile",
-        url: "/dashboard/profile",
+        url: "/student/profile",
       },
     ],
   },
@@ -23,7 +23,7 @@ export const userRoutes: Route[] = [
     items: [
       {
         title: "Find Tutors",
-        url: "/tutors",
+        url: "/student/tutors",
       },
     ],
   },

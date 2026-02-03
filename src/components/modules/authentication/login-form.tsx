@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -59,24 +60,13 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
         toast.success("User Logged in Successfully", { id: toastId });
 
-        // Persist token in cookie and user in localStorage for session
-        try {
-          const token =
-            (data as any)?.token ||
-            (data as any)?.accessToken ||
-            (data as any)?.session?.access_token;
-          if (token && typeof window !== "undefined") {
-            const maxAge = 7 * 24 * 60 * 60; // 7 days
-            document.cookie = `auth_token=${token}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
-          }
+        // Debug: log the response
+        console.log("Login response:", { data, error });
 
-          if ((data as any)?.user && typeof window !== "undefined") {
-            localStorage.setItem("sb_user", JSON.stringify((data as any).user));
-          }
-        } catch (e) {
-          // non-fatal
-          // eslint-disable-next-line no-console
-          console.warn("Persist auth failed", e);
+        // Store user info in localStorage for client-side access
+        if ((data as any)?.user && typeof window !== "undefined") {
+          console.log("Storing user in localStorage:", (data as any).user);
+          localStorage.setItem("sb_user", JSON.stringify((data as any).user));
         }
 
         // Route user by role (handle different casing)
@@ -89,42 +79,30 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           }
 
           if (role === "student") {
-            router.push("/dashboard");
+            router.push("/student");
             return;
           }
 
           if (role === "tutor") {
             // Check tutor profile status
             try {
-              const statusRes = await fetch(
-                "http://localhost:5000/api/register/status",
-                {
-                  credentials: "include",
-                }
-              );
+              const statusData = await api.get("/api/register/status");
+              const nextStep = statusData?.data?.nextStep;
 
-              if (statusRes.ok) {
-                const statusData = await statusRes.json();
-                const nextStep = statusData?.data?.nextStep;
-
-                switch (nextStep) {
-                  case "COMPLETE_PROFILE":
-                    router.push("/tutor/create-profile");
-                    break;
-                  case "UPDATE_PROFILE":
-                    router.push("/tutor/profile");
-                    break;
-                  case "SET_AVAILABILITY":
-                    router.push("/tutor/availability");
-                    break;
-                  case "READY":
-                  default:
-                    router.push("/tutor/dashboard");
-                    break;
-                }
-              } else {
-                // If status check fails, go to dashboard
-                router.push("/tutor/dashboard");
+              switch (nextStep) {
+                case "COMPLETE_PROFILE":
+                  router.push("/tutor/create-profile");
+                  break;
+                case "UPDATE_PROFILE":
+                  router.push("/tutor/profile");
+                  break;
+                case "SET_AVAILABILITY":
+                  router.push("/tutor/availability");
+                  break;
+                case "READY":
+                default:
+                  router.push("/tutor/dashboard");
+                  break;
               }
             } catch (err) {
               // If status check fails, go to dashboard
