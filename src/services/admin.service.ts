@@ -38,25 +38,18 @@ export const adminService = {
     }
   },
 
-  updateUserStatus: async function (userId: string, status: string) {
+  updateUserStatus: async (userId: string, status: string) => {
     try {
-      const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+      const res = await fetch(`${API_URL}/admin/users/${userId}/status`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
+        credentials: "include", // Important for auth cookies
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update user status");
-      }
-
       const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: "Failed to update user status" } };
+      return { data, error: !res.ok ? data : null };
+    } catch (err: any) {
+      return { data: null, error: { message: "Failed to update status" } };
     }
   },
 

@@ -67,9 +67,13 @@ export default function AdminUsersPage() {
   };
 
   const handleUpdateStatus = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "banned" : "active";
+    // 1. Determine new status
+    // If undefined or 'active', we want to 'banned'. If 'banned', we want 'active'.
+    const newStatus = currentStatus === "banned" ? "active" : "banned";
+
     setUpdatingUserId(userId);
 
+    // 2. Call the service
     const { error } = await adminService.updateUserStatus(userId, newStatus);
 
     if (error) {
@@ -82,12 +86,20 @@ export default function AdminUsersPage() {
       `User ${newStatus === "banned" ? "banned" : "activated"} successfully`,
     );
 
-    // Update local state
+    // 3. Update local state immediately so UI reflects change
     setUsers((prev) =>
       prev.map((user) =>
         user.id === userId ? { ...user, status: newStatus } : user,
       ),
     );
+
+    // Also update filtered list if it exists
+    setFilteredUsers((prev) =>
+      prev.map((user) =>
+        user.id === userId ? { ...user, status: newStatus } : user,
+      ),
+    );
+
     setUpdatingUserId(null);
   };
 
@@ -199,7 +211,7 @@ export default function AdminUsersPage() {
               Students
             </p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {users?.filter((u) => u.role === "student").length}
+              {users?.filter((u) => u.role === "STUDENT").length}
             </p>
           </CardContent>
         </Card>
@@ -209,7 +221,7 @@ export default function AdminUsersPage() {
               Tutors
             </p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">
-              {users?.filter((u) => u.role === "tutor").length}
+              {users?.filter((u) => u.role === "TUTOR").length}
             </p>
           </CardContent>
         </Card>
@@ -260,12 +272,12 @@ export default function AdminUsersPage() {
                     {user.status && (
                       <Badge
                         className={
-                          user.status === "active"
+                          user.status === "active" || user.status === "ACTIVE"
                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                         }
                       >
-                        {user.status}
+                        {user.status.toUpperCase()}
                       </Badge>
                     )}
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -275,7 +287,7 @@ export default function AdminUsersPage() {
                       <Button
                         size="sm"
                         variant={
-                          user.status === "active" ? "destructive" : "default"
+                          user.status === "banned" ? "default" : "destructive"
                         }
                         onClick={() =>
                           handleUpdateStatus(user.id, user.status || "active")
@@ -285,15 +297,15 @@ export default function AdminUsersPage() {
                       >
                         {updatingUserId === user.id ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : user.status === "active" ? (
-                          <>
-                            <Ban className="w-4 h-4 mr-1" />
-                            Ban
-                          </>
-                        ) : (
+                        ) : user.status === "banned" ? (
                           <>
                             <CheckCircle className="w-4 h-4 mr-1" />
                             Activate
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="w-4 h-4 mr-1" />
+                            Ban
                           </>
                         )}
                       </Button>
