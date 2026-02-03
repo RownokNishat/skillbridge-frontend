@@ -19,7 +19,7 @@ export interface TutorProfile {
   availability: AvailabilitySlot[];
   categoryId: string;
   category?: Category;
-  averageRating: number;
+  averageRating?: number;
   totalReviews: number;
   totalSessions: number;
   isVerified: boolean;
