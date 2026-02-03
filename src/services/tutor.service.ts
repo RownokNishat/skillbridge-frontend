@@ -106,6 +106,7 @@ export const tutorService = {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(data),
         ...options,
       });
@@ -114,6 +115,14 @@ export const tutorService = {
     } catch (err) {
       return { data: null, error: { message: "Failed to update profile" } };
     }
+  },
+
+  // Alias for updateTutorProfile
+  updateProfile: async (
+    data: Partial<TutorProfile>,
+    options?: RequestInit,
+  ): Promise<{ data: ApiResponse<TutorProfile> | null; error: any }> => {
+    return tutorService.updateTutorProfile(data, options);
   },
 
   // Update tutor availability

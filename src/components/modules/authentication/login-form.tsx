@@ -82,19 +82,60 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         // Route user by role (handle different casing)
         if ((data as any)?.user?.role) {
           const role = String((data as any).user.role).toLowerCase();
-          switch (role) {
-            case "admin":
-              router.push("/admin");
-              break;
-            case "tutor":
-              router.push("/tutor/dashboard");
-              break;
-            case "student":
-              router.push("/dashboard");
-              break;
-            default:
-              router.push("/dashboard");
+
+          if (role === "admin") {
+            router.push("/admin");
+            return;
           }
+
+          if (role === "student") {
+            router.push("/dashboard");
+            return;
+          }
+
+          if (role === "tutor") {
+            // Check tutor profile status
+            try {
+              const statusRes = await fetch(
+                "http://localhost:5000/api/register/status",
+                {
+                  credentials: "include",
+                }
+              );
+
+              if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                const nextStep = statusData?.data?.nextStep;
+
+                switch (nextStep) {
+                  case "COMPLETE_PROFILE":
+                    router.push("/tutor/create-profile");
+                    break;
+                  case "UPDATE_PROFILE":
+                    router.push("/tutor/profile");
+                    break;
+                  case "SET_AVAILABILITY":
+                    router.push("/tutor/availability");
+                    break;
+                  case "READY":
+                  default:
+                    router.push("/tutor/dashboard");
+                    break;
+                }
+              } else {
+                // If status check fails, go to dashboard
+                router.push("/tutor/dashboard");
+              }
+            } catch (err) {
+              // If status check fails, go to dashboard
+              console.error("Failed to check tutor status:", err);
+              router.push("/tutor/dashboard");
+            }
+            return;
+          }
+
+          // Default fallback
+          router.push("/dashboard");
         }
       } catch (err) {
         toast.error("Something went wrong, please try again.", { id: toastId });

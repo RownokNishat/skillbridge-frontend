@@ -48,8 +48,8 @@ export default function TutorProfilePage() {
       return;
     }
 
-    setProfile(profileResult.data);
-    setCategories(categoriesResult.data || []);
+    setProfile(profileResult.data.data);
+    setCategories(categoriesResult.data.data || []);
 
     // Set form values
     if (profileResult.data) {
@@ -57,7 +57,7 @@ export default function TutorProfilePage() {
       setHourlyRate(profileResult.data.hourlyRate?.toString() || "");
       setExperience(profileResult.data.experience?.toString() || "");
       setSelectedCategories(
-        profileResult.data.categories?.map((c: any) => c.id) || []
+        profileResult.data.categories?.map((c: any) => c.id) || [],
       );
     }
 
@@ -99,7 +99,7 @@ export default function TutorProfilePage() {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 

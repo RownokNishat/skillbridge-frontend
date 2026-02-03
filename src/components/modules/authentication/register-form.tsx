@@ -20,11 +20,15 @@ import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import { GraduationCap, Users } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "This field is required"),
   password: z.string().min(8, "Minimum length is 8"),
   email: z.email(),
+  role: z.enum(["STUDENT", "TUTOR"], {
+    required_error: "Please select a role",
+  }),
 });
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
@@ -42,6 +46,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
       name: "",
       email: "",
       password: "",
+      role: "" as "STUDENT" | "TUTOR",
     },
     validators: {
       onSubmit: formSchema,
@@ -49,10 +54,24 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Creating user");
       try {
-        const { data, error } = await authClient.signUp.email(value);
+        const response = await fetch("http://localhost:5000/api/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            email: value.email,
+            password: value.password,
+            name: value.name,
+            role: value.role,
+          }),
+        });
 
-        if (error) {
-          toast.error(error.message, { id: toastId });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          toast.error(data.message || "Registration failed", { id: toastId });
           return;
         }
 
@@ -139,6 +158,73 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+            <form.Field
+              name="role"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field>
+                    <FieldLabel>I want to register as</FieldLabel>
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => field.handleChange("STUDENT")}
+                        className={`p-4 border-2 rounded-lg transition-all ${
+                          field.state.value === "STUDENT"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <GraduationCap
+                            className={`w-8 h-8 ${
+                              field.state.value === "STUDENT"
+                                ? "text-blue-600"
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          />
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            Student
+                          </span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                            Learn from expert tutors
+                          </span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => field.handleChange("TUTOR")}
+                        className={`p-4 border-2 rounded-lg transition-all ${
+                          field.state.value === "TUTOR"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Users
+                            className={`w-8 h-8 ${
+                              field.state.value === "TUTOR"
+                                ? "text-blue-600"
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          />
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            Tutor
+                          </span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                            Share your knowledge
+                          </span>
+                        </div>
+                      </button>
+                    </div>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
