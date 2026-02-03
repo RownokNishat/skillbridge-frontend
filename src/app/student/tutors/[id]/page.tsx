@@ -42,6 +42,14 @@ export default function TutorDetailPage() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
+  // Availability Logic State
+  const [availabilityMap, setAvailabilityMap] = useState<
+    Record<string, string[]>
+  >({});
+  const [availableSlotsForDate, setAvailableSlotsForDate] = useState<string[]>(
+    [],
+  );
+
   // Review form state
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -50,13 +58,33 @@ export default function TutorDetailPage() {
     fetchTutorData();
   }, [tutorId]);
 
+  // Handle Availability Parsing when Date Changes
+  useEffect(() => {
+    if (!bookingDate || !tutor) {
+      setAvailableSlotsForDate([]);
+      return;
+    }
+
+    const date = new Date(bookingDate);
+    const dayName = date
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+
+    // Check if we have slots for this day name (e.g., 'monday')
+    const slots = availabilityMap[dayName] || [];
+    setAvailableSlotsForDate(slots);
+
+    // Reset selected times when date changes
+    setStartTime("");
+    setEndTime("");
+  }, [bookingDate, availabilityMap, tutor]);
+
   const fetchTutorData = async () => {
     setLoading(true);
     setError(null);
 
     const [tutorResult, reviewsResult] = await Promise.all([
       tutorService.getTutorById(tutorId),
-      // Assuming there's a method to get reviews, otherwise we'll handle it
       fetch(`http://localhost:5000/api/tutors/${tutorId}/reviews`, {
         credentials: "include",
       })
@@ -70,14 +98,50 @@ export default function TutorDetailPage() {
       return;
     }
 
-    setTutor(tutorResult.data?.data || null);
+    const tutorData = tutorResult.data?.data;
+
+    // --- Parse Availability JSON ---
+    let parsedAvailability: Record<string, string[]> = {};
+    try {
+      if (tutorData?.availability) {
+        // availability is likely a string: "[{\"monday\":[\"09:00-10:00\"]}]"
+        const parsed = JSON.parse(tutorData.availability);
+
+        // If it's an array of objects like the example, flatten it
+        if (Array.isArray(parsed)) {
+          parsed.forEach((dayObj) => {
+            Object.keys(dayObj).forEach((day) => {
+              parsedAvailability[day.toLowerCase()] = dayObj[day];
+            });
+          });
+        } else if (typeof parsed === "object") {
+          // If it's already a simple object
+          Object.keys(parsed).forEach((day) => {
+            parsedAvailability[day.toLowerCase()] = parsed[day];
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse availability", e);
+    }
+
+    setAvailabilityMap(parsedAvailability);
+    setTutor(tutorData || null);
     setReviews(reviewsResult?.data || []);
     setLoading(false);
   };
 
+  const handleSlotSelect = (slot: string) => {
+    const [start, end] = slot.split("-");
+    if (start && end) {
+      setStartTime(start.trim());
+      setEndTime(end.trim());
+    }
+  };
+
   const handleBooking = async () => {
     if (!bookingDate || !startTime || !endTime) {
-      toast.error("Please fill in all booking details");
+      toast.error("Please select a date and an available time slot");
       return;
     }
 
@@ -250,7 +314,8 @@ export default function TutorDetailPage() {
                     )}
                   </div>
                   <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                    {tutor.category?.name || "General"}
+                    {tutor.categories?.map((c) => c.name).join(", ") ||
+                      "General"}
                   </p>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
@@ -262,12 +327,7 @@ export default function TutorDetailPage() {
                         ({tutor.totalReviews || 0} reviews)
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-blue-500" />
-                      <span className="text-sm">
-                        {tutor.totalSessions || 0} sessions
-                      </span>
-                    </div>
+                    {/* Removed totalSessions if not in data, or handled safely */}
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-purple-500" />
                       <span className="text-sm">
@@ -285,44 +345,6 @@ export default function TutorDetailPage() {
                     {tutor.bio}
                   </p>
                 </div>
-
-                {tutor.education && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Education</h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {tutor.education}
-                    </p>
-                  </div>
-                )}
-
-                {tutor.languages && tutor.languages.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Languages</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {tutor.languages.map((lang, idx) => (
-                        <Badge key={idx} variant="outline">
-                          {lang}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {tutor.expertise && tutor.expertise.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Expertise</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {tutor.expertise.map((skill, idx) => (
-                        <Badge
-                          key={idx}
-                          className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -462,7 +484,7 @@ export default function TutorDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">Select Date</Label>
                 <Input
                   id="date"
                   type="date"
@@ -473,32 +495,68 @@ export default function TutorDetailPage() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="startTime">Start Time</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="mt-2"
-                />
-              </div>
+              {/* Dynamic Slots Selection */}
+              {bookingDate && (
+                <div className="space-y-2">
+                  <Label>
+                    Available Slots for{" "}
+                    {new Date(bookingDate).toLocaleDateString("en-US", {
+                      weekday: "long",
+                    })}
+                  </Label>
+                  {availableSlotsForDate.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {availableSlotsForDate.map((slot, idx) => {
+                        const isSelected =
+                          startTime && slot.startsWith(startTime);
+                        return (
+                          <Button
+                            key={idx}
+                            variant={isSelected ? "default" : "outline"}
+                            className={`text-sm ${isSelected ? "bg-blue-600 text-white" : ""}`}
+                            onClick={() => handleSlotSelect(slot)}
+                          >
+                            {slot}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded text-center text-sm text-gray-500">
+                      No slots available on this day.
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <div>
-                <Label htmlFor="endTime">End Time</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="mt-2"
-                />
+              {/* Read Only Time Inputs (Visual confirmation) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startTime">Start Time</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    readOnly
+                    className="mt-2 bg-gray-50 dark:bg-gray-900"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endTime">End Time</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    readOnly
+                    className="mt-2 bg-gray-50 dark:bg-gray-900"
+                  />
+                </div>
               </div>
 
               <Button
                 onClick={handleBooking}
-                disabled={bookingLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                disabled={bookingLoading || !startTime || !endTime}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 mt-4"
               >
                 {bookingLoading ? (
                   <>
@@ -508,7 +566,7 @@ export default function TutorDetailPage() {
                 ) : (
                   <>
                     <Calendar className="w-4 h-4 mr-2" />
-                    Book Now
+                    Book Session
                   </>
                 )}
               </Button>
