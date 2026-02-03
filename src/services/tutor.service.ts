@@ -233,4 +233,58 @@ export const tutorService = {
       };
     }
   },
+  // Accept a pending session
+  acceptSession: async (
+    bookingId: number,
+  ): Promise<{ data: any | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutor/sessions/${bookingId}/accept`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      // Handle potential API error responses explicitly if needed
+      if (data.success === false) {
+        return { data: null, error: { message: data.message } };
+      }
+
+      return { data: data.data, error: null };
+    } catch (err) {
+      return {
+        data: null,
+        error: { message: "Failed to accept session" },
+      };
+    }
+  },
+
+  // Cancel a session
+  cancelSession: async (
+    bookingId: number,
+  ): Promise<{ data: any | null; error: any }> => {
+    try {
+      const res = await fetch(`${API_URL}/tutor/sessions/${bookingId}/cancel`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (data.success === false) {
+        return { data: null, error: { message: data.message } };
+      }
+
+      return { data: data.data, error: null };
+    } catch (err) {
+      return {
+        data: null,
+        error: { message: "Failed to cancel session" },
+      };
+    }
+  },
 };
