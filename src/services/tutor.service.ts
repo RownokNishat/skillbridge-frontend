@@ -127,7 +127,7 @@ export const tutorService = {
 
   // Update tutor availability
   updateAvailability: async (
-    availability: any[],
+    availability: Record<string, string[]>,
     options?: RequestInit,
   ): Promise<{ data: ApiResponse<any> | null; error: any }> => {
     try {

@@ -48,16 +48,17 @@ export default function TutorProfilePage() {
       return;
     }
 
-    setProfile(profileResult.data.data);
+    const profile = profileResult.data;
+    setProfile(profile);
     setCategories(categoriesResult.data.data || []);
 
     // Set form values
-    if (profileResult.data) {
-      setBio(profileResult.data.bio || "");
-      setHourlyRate(profileResult.data.hourlyRate?.toString() || "");
-      setExperience(profileResult.data.experience?.toString() || "");
+    if (profile) {
+      setBio(profile.bio || "");
+      setHourlyRate(profile.hourlyRate?.toString() || "");
+      setExperience(profile.experience?.toString() || "");
       setSelectedCategories(
-        profileResult.data.categories?.map((c: any) => c.id) || [],
+        profile.categories?.map((c: any) => c.id) || [],
       );
     }
 
@@ -77,12 +78,12 @@ export default function TutorProfilePage() {
 
     setSaving(true);
 
-    const { error } = await tutorService.updateProfile({
+    const { error } = await tutorService.updateTutorProfile({
       bio: bio.trim(),
       hourlyRate: parseFloat(hourlyRate),
       experience: parseInt(experience),
       categoryIds: selectedCategories,
-    });
+    } as any);
 
     if (error) {
       toast.error(error.message);

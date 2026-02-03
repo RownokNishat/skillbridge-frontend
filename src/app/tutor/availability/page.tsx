@@ -40,11 +40,20 @@ export default function TutorAvailabilityPage() {
     }
 
     try {
-      const parsedAvailability = data?.availability
-        ? JSON.parse(data.availability)
-        : {};
-      setAvailability(parsedAvailability);
+      if (data?.availability) {
+        let parsedAvailability = JSON.parse(data.availability);
+
+        // Handle if availability is stored as array with single object
+        if (Array.isArray(parsedAvailability) && parsedAvailability.length > 0) {
+          parsedAvailability = parsedAvailability[0];
+        }
+
+        setAvailability(parsedAvailability || {});
+      } else {
+        setAvailability({});
+      }
     } catch (err) {
+      console.error("Error parsing availability:", err);
       setAvailability({});
     }
 
@@ -54,9 +63,7 @@ export default function TutorAvailabilityPage() {
   const handleSave = async () => {
     setSaving(true);
 
-    const availabilityString = JSON.stringify(availability);
-
-    const { error } = await tutorService.updateAvailability([availability]);
+    const { error } = await tutorService.updateAvailability(availability);
 
     if (error) {
       toast.error(error.message);

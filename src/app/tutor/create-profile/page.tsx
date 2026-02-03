@@ -61,8 +61,8 @@ export default function CreateTutorProfilePage() {
       bio: bio.trim(),
       hourlyRate: parseFloat(hourlyRate),
       experience: parseInt(experience),
-      categoryId: "science", // Assuming single category selection for now
-    });
+      categoryIds: selectedCategories,
+    } as any);
 
     if (error) {
       toast.error(error.message);
