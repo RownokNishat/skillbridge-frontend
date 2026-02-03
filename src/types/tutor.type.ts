@@ -26,6 +26,7 @@ export interface TutorProfile {
   createdAt: string;
   updatedAt: string;
   user?: User;
+  reviews?: Review[];
 }
 
 export interface User {

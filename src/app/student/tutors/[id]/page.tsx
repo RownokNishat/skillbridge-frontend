@@ -83,13 +83,8 @@ export default function TutorDetailPage() {
     setLoading(true);
     setError(null);
 
-    const [tutorResult, reviewsResult] = await Promise.all([
+    const [tutorResult] = await Promise.all([
       tutorService.getTutorById(tutorId),
-      fetch(`http://localhost:5000/api/tutors/${tutorId}/reviews`, {
-        credentials: "include",
-      })
-        .then((res) => res.json())
-        .catch(() => ({ data: [] })),
     ]);
 
     if (tutorResult.error) {
@@ -127,7 +122,7 @@ export default function TutorDetailPage() {
 
     setAvailabilityMap(parsedAvailability);
     setTutor(tutorData || null);
-    setReviews(reviewsResult?.data || []);
+    setReviews(tutorData?.reviews || []);
     setLoading(false);
   };
 
