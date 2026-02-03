@@ -15,12 +15,15 @@ export async function proxy(request: NextRequest) {
 
   // Call backend to validate session
   try {
-    const response = await fetch("http://localhost:5000/api/get-session", {
-      headers: {
-        Cookie: `better-auth.session_token=${sessionToken}`,
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/get-session`,
+      {
+        headers: {
+          Cookie: `better-auth.session_token=${sessionToken}`,
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+    );
 
     if (!response.ok) {
       console.log("Session validation failed, redirecting to login");
