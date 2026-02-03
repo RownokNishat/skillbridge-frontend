@@ -70,81 +70,52 @@ export const categoryService = {
     }
   },
 
-  /**
-   * Create a new category (admin only)
-   */
-  createCategory: async function (name: string, description: string) {
+  // Create
+  createCategory: async (name: string, description: string) => {
     try {
       const res = await fetch(`${API_URL}/categories`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description }),
+        credentials: "include", // Important for Admin Auth
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to create category");
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create");
       return { data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: "Failed to create category" } };
+    } catch (err: any) {
+      return { data: null, error: { message: err.message } };
     }
   },
 
-  /**
-   * Update an existing category (admin only)
-   */
-  updateCategory: async function (
-    categoryId: string,
-    name: string,
-    description: string,
-  ) {
+  // Update
+  updateCategory: async (id: string, name: string, description: string) => {
     try {
-      const res = await fetch(`${API_URL}/categories/${categoryId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+      const res = await fetch(`${API_URL}/categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description }),
+        credentials: "include",
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update category");
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update");
       return { data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: "Failed to update category" } };
+    } catch (err: any) {
+      return { data: null, error: { message: err.message } };
     }
   },
 
-  /**
-   * Delete a category (admin only)
-   */
-  deleteCategory: async function (categoryId: string) {
+  // Delete
+  deleteCategory: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/categories/${categoryId}`, {
+      const res = await fetch(`${API_URL}/categories/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: "include",
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete category");
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete");
       return { data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: "Failed to delete category" } };
+    } catch (err: any) {
+      return { data: null, error: { message: err.message } };
     }
   },
 
