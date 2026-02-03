@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const publicPaths = ["/", "/login", "/register", "/about", "/contact", "/tutors"];
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   console.log("Middleware executing for path:", pathname);
+
+  // Skip auth check for public routes and static assets
+  if (
+    publicPaths.some((p) => pathname === p || (p !== "/" && pathname.startsWith(p + "/"))) ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
 
   // Get session token from cookies
   const sessionToken = request.cookies.get("better-auth.session_token")?.value;
