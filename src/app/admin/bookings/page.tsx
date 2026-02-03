@@ -42,7 +42,7 @@ export default function AdminBookingsPage() {
         (booking) =>
           booking.studentName.toLowerCase().includes(query) ||
           booking.tutorName.toLowerCase().includes(query) ||
-          booking.subject.toLowerCase().includes(query)
+          booking.subject.toLowerCase().includes(query),
       );
     }
 
@@ -58,7 +58,9 @@ export default function AdminBookingsPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await adminService.getAllBookings({ cache: "no-store" });
+    const { data, error } = await adminService.getAllBookings({
+      cache: "no-store",
+    });
 
     if (error) {
       setError(error.message);
@@ -66,8 +68,8 @@ export default function AdminBookingsPage() {
       return;
     }
 
-    setBookings(data || []);
-    setFilteredBookings(data || []);
+    setBookings(data.data || []);
+    setFilteredBookings(data.data || []);
     setLoading(false);
   };
 
@@ -235,9 +237,7 @@ export default function AdminBookingsPage() {
       {/* Bookings List */}
       <Card className="border-2">
         <CardHeader>
-          <CardTitle>
-            Bookings ({filteredBookings.length})
-          </CardTitle>
+          <CardTitle>Bookings ({filteredBookings.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {filteredBookings.length === 0 ? (

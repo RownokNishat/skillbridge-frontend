@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { Booking } from "@/types";
 
-const API_URL = env.API_URL;
+const API_URL = "http://localhost:5000/api";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -21,7 +21,7 @@ export const bookingService = {
   // Create a new booking
   createBooking: async (
     data: CreateBookingData,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking> | null; error: any }> => {
     try {
       const res = await fetch(`${API_URL}/bookings`, {
@@ -41,7 +41,7 @@ export const bookingService = {
 
   // Get user's bookings
   getMyBookings: async (
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking[]> | null; error: any }> => {
     try {
       const res = await fetch(`${API_URL}/bookings`, options);
@@ -55,7 +55,7 @@ export const bookingService = {
   // Get booking by ID
   getBookingById: async (
     id: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking> | null; error: any }> => {
     try {
       const res = await fetch(`${API_URL}/bookings/${id}`, options);
@@ -69,7 +69,7 @@ export const bookingService = {
   // Cancel booking
   cancelBooking: async (
     id: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking> | null; error: any }> => {
     try {
       const res = await fetch(`${API_URL}/bookings/${id}`, {
@@ -90,7 +90,7 @@ export const bookingService = {
   // Mark booking as completed (for tutors)
   completeBooking: async (
     id: string,
-    options?: RequestInit
+    options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking> | null; error: any }> => {
     try {
       const res = await fetch(`${API_URL}/bookings/${id}`, {

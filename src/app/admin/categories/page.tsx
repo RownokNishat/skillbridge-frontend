@@ -4,17 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { adminService } from "@/services/admin.service";
+import { categoryService, Category } from "@/services/category.service";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  createdAt?: string;
-}
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,7 +32,9 @@ export default function AdminCategoriesPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await adminService.getAllCategories({ cache: "no-store" });
+    const { data, error } = await categoryService.getAllCategories({
+      cache: "no-store",
+    });
 
     if (error) {
       setError(error.message);
@@ -47,7 +42,7 @@ export default function AdminCategoriesPage() {
       return;
     }
 
-    setCategories(data || []);
+    setCategories(data.data || []);
     setLoading(false);
   };
 
@@ -59,7 +54,10 @@ export default function AdminCategoriesPage() {
 
     setSavingId("new");
 
-    const { error } = await adminService.createCategory(newName, newDescription);
+    const { error } = await categoryService.createCategory(
+      newName,
+      newDescription,
+    );
 
     if (error) {
       toast.error(error.message);
@@ -83,10 +81,10 @@ export default function AdminCategoriesPage() {
 
     setSavingId(categoryId);
 
-    const { error } = await adminService.updateCategory(
+    const { error } = await categoryService.updateCategory(
       categoryId,
       editName,
-      editDescription
+      editDescription,
     );
 
     if (error) {
@@ -108,7 +106,7 @@ export default function AdminCategoriesPage() {
 
     setDeletingId(categoryId);
 
-    const { error } = await adminService.deleteCategory(categoryId);
+    const { error } = await categoryService.deleteCategory(categoryId);
 
     if (error) {
       toast.error(error.message);
@@ -347,7 +345,8 @@ export default function AdminCategoriesPage() {
                       </p>
                       {category.createdAt && (
                         <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                          Created: {new Date(category.createdAt).toLocaleDateString()}
+                          Created:{" "}
+                          {new Date(category.createdAt).toLocaleDateString()}
                         </p>
                       )}
                     </div>
