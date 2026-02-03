@@ -341,7 +341,7 @@ export default function BrowseTutorsPage() {
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span className="text-sm font-semibold">
-                        {tutor.rating?.toFixed(1) || "0.0"}
+                        {tutor.averageRating?.toFixed(1) || "0.0"}
                       </span>
                       <span className="text-xs text-gray-500">
                         ({tutor.totalReviews || 0})
@@ -373,7 +373,7 @@ export default function BrowseTutorsPage() {
                     asChild
                     className="w-full mt-auto bg-gradient-to-r from-blue-600 to-indigo-600"
                   >
-                    <Link href={`/student/tutors/${tutor.id}`}>
+                    <Link href={`/student/tutors/${tutor?.user?.id}`}>
                       View Profile
                     </Link>
                   </Button>

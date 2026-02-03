@@ -256,7 +256,7 @@ export default function TutorDetailPage() {
                     <div className="flex items-center gap-2">
                       <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                       <span className="text-lg font-semibold">
-                        {tutor.rating?.toFixed(1) || "0.0"}
+                        {tutor.averageRating?.toFixed(1) || "0.0"}
                       </span>
                       <span className="text-sm text-gray-500">
                         ({tutor.totalReviews || 0} reviews)
