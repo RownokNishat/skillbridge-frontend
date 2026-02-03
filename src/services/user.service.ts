@@ -13,6 +13,8 @@ export const userService = {
       const res = await fetch(`${AUTH_URL}/get-session`, {
         headers: {
           Cookie: cookieStore.toString(),
+          Authorization: `Bearer ${cookieStore.toString()}`,
+          "Content-Type": "application/json",
         },
         cache: "no-store",
       });

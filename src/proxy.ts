@@ -1,47 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import { userService } from "./services/user.service";
-import { Roles } from "./constants/roles";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  let isAuthenticated = false;
-  let isAdmin = false;
-
   console.log("Middleware executing for path:", pathname);
 
-  const { data } = await userService.getSession();
+  // Get session token from cookies
+  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
 
-  if (data) {
-    isAuthenticated = true;
-    isAdmin = data.user.role === Roles.admin;
-  }
-
-  //* User in not authenticated at all
-  if (!isAuthenticated) {
+  if (!sessionToken) {
+    console.log("No session token found, redirecting to login");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  //* User is authenticated and role = ADMIN
-  //* User can not visit user dashboard
-  if (isAdmin && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/admin-dashboard", request.url));
-  }
+  // Call backend to validate session
+  try {
+    const response = await fetch("http://localhost:5000/api/get-session", {
+      headers: {
+        Cookie: `better-auth.session_token=${sessionToken}`,
+      },
+      cache: "no-store",
+    });
 
-  //* User is authenticated and role = USER
-  //* User can not visit admin-dashboard
-  if (!isAdmin && pathname.startsWith("/admin-dashboard")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+    if (!response.ok) {
+      console.log("Session validation failed, redirecting to login");
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
 
-  return NextResponse.next();
+    const data = await response.json();
+    console.log("User authenticated:", data);
+
+    const userRole = data?.data?.user?.role?.toUpperCase();
+
+    if (!userRole) {
+      console.log("No user role found, redirecting to login");
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    // Admin role checks
+    if (userRole === "ADMIN") {
+      // Admin can't access user or tutor dashboards
+      if (pathname.startsWith("/dashboard") || pathname.startsWith("/tutor")) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+    } else {
+      // Non-admin users can't access admin routes
+      if (pathname.startsWith("/admin")) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      // Tutor-specific routes
+      if (userRole === "TUTOR" && pathname.startsWith("/dashboard")) {
+        return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
+      }
+
+      // Student trying to access tutor routes
+      if (userRole === "STUDENT" && pathname.startsWith("/tutor")) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Error validating session:", error);
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 }
-
-export const config = {
-  matcher: [
-    "/dashboard",
-    "/dashboard/:path*",
-    "/admin-dashboard",
-    "/admin-dashboard/:path*",
-  ],
-};

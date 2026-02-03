@@ -2,11 +2,28 @@ import { Route } from "@/types";
 
 export const userRoutes: Route[] = [
   {
-    title: "Blog Management",
+    title: "Dashboard",
     items: [
       {
-        title: "Create Blog",
-        url: "/create-blog",
+        title: "Overview",
+        url: "/dashboard",
+      },
+      {
+        title: "My Bookings",
+        url: "/dashboard/bookings",
+      },
+      {
+        title: "My Profile",
+        url: "/dashboard/profile",
+      },
+    ],
+  },
+  {
+    title: "Browse",
+    items: [
+      {
+        title: "Find Tutors",
+        url: "/tutors",
       },
     ],
   },

@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { userRoutes } from "@/routes/userRoutes";
+import { tutorRoutes } from "@/routes/tutorRoutes";
 import { Route } from "@/types";
 
 export function AppSidebar({
@@ -31,8 +32,12 @@ export function AppSidebar({
     case "admin":
       routes = adminRoutes;
       break;
+    case "student":
     case "user":
       routes = userRoutes;
+      break;
+    case "tutor":
+      routes = tutorRoutes;
       break;
     default:
       routes = [];

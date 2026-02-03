@@ -36,9 +36,27 @@ export default function AdminDashboard() {
   ];
 
   const recentUsers = [
-    { id: "1", name: "John Doe", email: "john@example.com", role: "student", joinedAt: "2026-02-01" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com", role: "tutor", joinedAt: "2026-01-31" },
-    { id: "3", name: "Mike Wilson", email: "mike@example.com", role: "student", joinedAt: "2026-01-30" },
+    {
+      id: "1",
+      name: "John Doe",
+      email: "john@example.com",
+      role: "student",
+      joinedAt: "2026-02-01",
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      role: "tutor",
+      joinedAt: "2026-01-31",
+    },
+    {
+      id: "3",
+      name: "Mike Wilson",
+      email: "mike@example.com",
+      role: "student",
+      joinedAt: "2026-01-30",
+    },
   ];
 
   return (
@@ -115,7 +133,7 @@ export default function AdminDashboard() {
                     {user.role}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {new Date(user.joinedAt).toLocaleDateString()}
+                    {new Date(user?.joinedAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
