@@ -76,7 +76,7 @@ export default function BrowseTutorsPage() {
     }
 
     console.log("Fetched tutors:", data);
-    setTutors(data?.data || []);
+    setTutors(data?.data?.data || []);
     setLoading(false);
   };
 

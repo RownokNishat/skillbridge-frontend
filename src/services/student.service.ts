@@ -35,7 +35,12 @@ export const studentService = {
 
   // Update student profile
   updateProfile: async (
-    profileData: { name?: string; phone?: string; image?: string },
+    profileData: {
+      name?: string;
+      phone?: string;
+      image?: string;
+      bio?: string;
+    },
     options?: RequestInit,
   ): Promise<{ data: any | null; error: any }> => {
     try {

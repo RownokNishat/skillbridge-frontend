@@ -95,29 +95,17 @@ export default function TutorDetailPage() {
 
     const tutorData = tutorResult.data?.data;
 
-    // --- Parse Availability JSON ---
+    // --- Build Availability Map from AvailabilitySlot[] ---
+    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     let parsedAvailability: Record<string, string[]> = {};
-    try {
-      if (tutorData?.availability) {
-        // availability is likely a string: "[{\"monday\":[\"09:00-10:00\"]}]"
-        const parsed = JSON.parse(tutorData.availability);
-
-        // If it's an array of objects like the example, flatten it
-        if (Array.isArray(parsed)) {
-          parsed.forEach((dayObj) => {
-            Object.keys(dayObj).forEach((day) => {
-              parsedAvailability[day.toLowerCase()] = dayObj[day];
-            });
-          });
-        } else if (typeof parsed === "object") {
-          // If it's already a simple object
-          Object.keys(parsed).forEach((day) => {
-            parsedAvailability[day.toLowerCase()] = parsed[day];
-          });
+    if (tutorData?.availability) {
+      tutorData.availability.forEach((slot) => {
+        const dayName = dayNames[slot.dayOfWeek];
+        if (!parsedAvailability[dayName]) {
+          parsedAvailability[dayName] = [];
         }
-      }
-    } catch (e) {
-      console.error("Failed to parse availability", e);
+        parsedAvailability[dayName].push(`${slot.startTime}-${slot.endTime}`);
+      });
     }
 
     setAvailabilityMap(parsedAvailability);

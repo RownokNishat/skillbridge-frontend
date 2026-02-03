@@ -29,7 +29,7 @@ const formSchema = z.object({
   password: z.string().min(8, "Minimum length is 8"),
   email: z.email(),
   role: z.enum(["STUDENT", "TUTOR"], {
-    required_error: "Please select a role",
+    message: "Please select a role",
   }),
 });
 

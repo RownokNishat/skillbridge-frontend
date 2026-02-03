@@ -19,6 +19,7 @@ export interface TutorProfile {
   availability: AvailabilitySlot[];
   categoryId: string;
   category?: Category;
+  categories?: Category[];
   averageRating?: number;
   totalReviews: number;
   totalSessions: number;
