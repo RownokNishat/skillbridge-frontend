@@ -1,8 +1,10 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, LogOut, User, LayoutDashboard } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
 
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 
@@ -76,6 +86,52 @@ const Navbar = ({
   },
   className,
 }: Navbar1Props) => {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    localStorage.removeItem("sb_user");
+    router.push("/login");
+    router.refresh();
+  };
+
+  const getDashboardUrl = () => {
+    if (!session?.user) return "/";
+    const role = (session.user as any).role?.toLowerCase();
+    switch (role) {
+      case "admin":
+        return "/admin";
+      case "tutor":
+        return "/tutor/dashboard";
+      case "student":
+      default:
+        return "/student";
+    }
+  };
+
+  const getProfileUrl = () => {
+    if (!session?.user) return "/";
+    const role = (session.user as any).role?.toLowerCase();
+    switch (role) {
+      case "admin":
+        return "/admin/profile";
+      case "tutor":
+        return "/tutor/profile";
+      case "student":
+      default:
+        return "/student/profile";
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
   return (
     <section className={cn("py-4 ", className)}>
       <div className="container mx-auto px-4">
@@ -103,14 +159,59 @@ const Navbar = ({
               </NavigationMenu>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <ModeToggle />
-            <Button asChild variant="outline" size="sm">
-              <Link href={auth.login.url}>{auth.login.title}</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href={auth.signup.url}>{auth.signup.title}</Link>
-            </Button>
+            {isPending ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={(session.user as any).image || ""} alt={session.user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials(session.user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{session.user.name}</p>
+                      <p className="text-sm text-muted-foreground">{session.user.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={getDashboardUrl()} className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={getProfileUrl()} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={auth.login.url}>{auth.login.title}</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href={auth.signup.url}>{auth.signup.title}</Link>
+                </Button>
+              </>
+            )}
           </div>
         </nav>
 
@@ -119,11 +220,16 @@ const Navbar = ({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
+              {logo.src && (
+                <img
+                  src={logo.src}
+                  className="max-h-8 dark:invert"
+                  alt={logo.alt}
+                />
+              )}
+              <span className="text-xl font-bold tracking-tighter bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                {logo.title}
+              </span>
             </a>
             <Sheet>
               <SheetTrigger asChild>
@@ -160,12 +266,41 @@ const Navbar = ({
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <Link href={auth.login.url}>{auth.login.title}</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                    </Button>
+                    {session?.user ? (
+                      <>
+                        <div className="flex items-center gap-3 p-2 border rounded-lg">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={(session.user as any).image || ""} alt={session.user.name} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getInitials(session.user.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <p className="font-medium text-sm">{session.user.name}</p>
+                            <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline">
+                          <Link href={getDashboardUrl()}>
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </Button>
+                        <Button onClick={handleLogout} variant="destructive">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button asChild variant="outline">
+                          <Link href={auth.login.url}>{auth.login.title}</Link>
+                        </Button>
+                        <Button asChild>
+                          <Link href={auth.signup.url}>{auth.signup.title}</Link>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </SheetContent>

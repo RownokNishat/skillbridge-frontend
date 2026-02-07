@@ -1,24 +1,28 @@
-import * as React from "react";
+"use client";
 
-import { SearchForm } from "@/components/layout/search-form";
-import { VersionSwitcher } from "@/components/layout/version-switcher";
+import * as React from "react";
+import { LogOut, Home } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { userRoutes } from "@/routes/userRoutes";
 import { tutorRoutes } from "@/routes/tutorRoutes";
 import { Route } from "@/types";
+import { authClient } from "@/lib/auth-client";
 
 export function AppSidebar({
   user,
@@ -26,6 +30,7 @@ export function AppSidebar({
 }: {
   user: { role: string } & React.ComponentProps<typeof Sidebar>;
 }) {
+  const router = useRouter();
   let routes: Route[] = [];
 
   switch (user.role) {
@@ -45,6 +50,13 @@ export function AppSidebar({
       routes = [];
       break;
   }
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    localStorage.removeItem("sb_user");
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <Sidebar {...props}>
@@ -66,6 +78,28 @@ export function AppSidebar({
           </SidebarGroup>
         ))}
       </SidebarContent>
+      <SidebarFooter className="p-4 border-t">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href="/">
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

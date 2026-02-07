@@ -205,7 +205,7 @@ export default function FeaturedTutorsSection({
 
                 {/* Tutors Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                    {tutors.map((tutor, index) => (
+                    {tutors.length > 0 ? tutors.map((tutor, index) => (
                         <motion.div
                             key={tutor.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -219,7 +219,7 @@ export default function FeaturedTutorsSection({
                                     <div className="flex items-start gap-4">
                                         <div className="relative">
                                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                                                {tutor.user?.name.charAt(0)}
+                                                {tutor.user?.name?.charAt(0) || "T"}
                                             </div>
                                             {tutor.isVerified && (
                                                 <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
@@ -237,10 +237,10 @@ export default function FeaturedTutorsSection({
                                             <div className="flex items-center gap-1 mt-1">
                                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                                 <span className="font-semibold text-gray-900 dark:text-white">
-                                                    {tutor.rating}
+                                                    {tutor.rating || 0}
                                                 </span>
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                    ({tutor.totalReviews} reviews)
+                                                    ({tutor.totalReviews || 0} reviews)
                                                 </span>
                                             </div>
                                         </div>
@@ -253,7 +253,7 @@ export default function FeaturedTutorsSection({
 
                                     {/* Expertise Tags */}
                                     <div className="flex flex-wrap gap-2">
-                                        {tutor.expertise.slice(0, 3).map((skill) => (
+                                        {(tutor.expertise || []).slice(0, 3).map((skill) => (
                                             <Badge
                                                 key={skill}
                                                 variant="secondary"
@@ -268,10 +268,10 @@ export default function FeaturedTutorsSection({
                                     <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
                                         <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                                             <Clock className="w-4 h-4" />
-                                            <span>{tutor.experience}+ years</span>
+                                            <span>{tutor.experience || 0}+ years</span>
                                         </div>
                                         <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                            ${tutor.hourlyRate}
+                                            ${tutor.hourlyRate || 0}
                                             <span className="text-sm font-normal text-gray-600 dark:text-gray-400">
                                                 /hr
                                             </span>
@@ -288,7 +288,11 @@ export default function FeaturedTutorsSection({
                                 </CardContent>
                             </Card>
                         </motion.div>
-                    ))}
+                    )) : (
+                        <div className="col-span-full text-center text-gray-500 py-10">
+                            No featured tutors available at the moment
+                        </div>
+                    )}
                 </div>
 
                 {/* View All Button */}

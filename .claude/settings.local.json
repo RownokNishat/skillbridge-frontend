@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx shadcn@latest add avatar --yes)",
+      "Bash(npm run build:*)",
+      "Bash(npx shadcn@latest add select:*)"
+    ]
+  }
+}
