@@ -34,8 +34,6 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
       provider: "google",
       callbackURL: "http://localhost:3000",
     });
-
-    console.log(data);
   };
 
   const router = useRouter();
@@ -62,6 +60,8 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
         // Debug: log the response
         console.log("Login response:", { data, error });
+        console.log("User object:", (data as any)?.user);
+        console.log("User role:", (data as any)?.user?.role);
 
         // Store user info in localStorage for client-side access
         if ((data as any)?.user && typeof window !== "undefined") {
@@ -72,6 +72,7 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         // Route user by role (handle different casing)
         if ((data as any)?.user?.role) {
           const role = String((data as any).user.role).toLowerCase();
+          console.log("Routing user with role:", role);
 
           if (role === "admin") {
             router.push("/admin");
@@ -84,7 +85,6 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           }
 
           if (role === "tutor") {
-            // Check tutor profile status
             try {
               const statusData = await api.get("/api/register/status");
               const nextStep = statusData?.data?.nextStep;

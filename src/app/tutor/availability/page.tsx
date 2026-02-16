@@ -43,7 +43,6 @@ export default function TutorAvailabilityPage() {
       if (data?.availability) {
         let parsedAvailability = JSON.parse(data.availability);
 
-        // Handle if availability is stored as array with single object
         if (Array.isArray(parsedAvailability) && parsedAvailability.length > 0) {
           parsedAvailability = parsedAvailability[0];
         }

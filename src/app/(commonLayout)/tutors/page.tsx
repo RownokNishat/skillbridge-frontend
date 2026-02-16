@@ -15,13 +15,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, Clock, Award, Search, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TutorProfile, TutorFilters, Category } from "@/types";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
-export default function TutorsPage() {
+function TutorsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -35,14 +36,18 @@ export default function TutorsPage() {
 
     // Filter state from URL params
     const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-    const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
     const [minRate, setMinRate] = useState(searchParams.get("minRate") || "");
     const [maxRate, setMaxRate] = useState(searchParams.get("maxRate") || "");
-    const [minRating, setMinRating] = useState(searchParams.get("minRating") || "");
-    const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "");
+    const [minRating, setMinRating] = useState(searchParams.get("minRating") || "any");
+    const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "relevance");
     const [sortOrder, setSortOrder] = useState(searchParams.get("sortOrder") || "desc");
 
-    // Fetch categories on mount
+    // Debounced values for API calls
+    const debouncedSearch = useDebounce(searchQuery, 500);
+    const debouncedMinRate = useDebounce(minRate, 500);
+    const debouncedMaxRate = useDebounce(maxRate, 500);
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -61,17 +66,16 @@ export default function TutorsPage() {
     // Build filters from state
     const buildFilters = useCallback((): TutorFilters => {
         const filters: TutorFilters = {};
-        if (searchQuery) filters.search = searchQuery;
+        if (debouncedSearch) filters.search = debouncedSearch;
         if (selectedCategory) filters.categoryId = selectedCategory;
-        if (minRate) filters.minRate = parseFloat(minRate);
-        if (maxRate) filters.maxRate = parseFloat(maxRate);
+        if (debouncedMinRate) filters.minRate = parseFloat(debouncedMinRate);
+        if (debouncedMaxRate) filters.maxRate = parseFloat(debouncedMaxRate);
         if (minRating) filters.minRating = parseFloat(minRating);
         if (sortBy) filters.sortBy = sortBy as TutorFilters["sortBy"];
         if (sortOrder) filters.sortOrder = sortOrder as TutorFilters["sortOrder"];
         return filters;
-    }, [searchQuery, selectedCategory, minRate, maxRate, minRating, sortBy, sortOrder]);
+    }, [debouncedSearch, selectedCategory, debouncedMinRate, debouncedMaxRate, minRating, sortBy, sortOrder]);
 
-    // Fetch tutors
     const fetchTutors = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -81,11 +85,11 @@ export default function TutorsPage() {
             const params = new URLSearchParams();
 
             if (filters.search) params.append("search", filters.search);
-            if (filters.categoryId) params.append("categoryId", filters.categoryId);
+            if (filters.categoryId && filters.categoryId !== "all") params.append("categoryId", filters.categoryId);
             if (filters.minRate) params.append("minRate", filters.minRate.toString());
             if (filters.maxRate) params.append("maxRate", filters.maxRate.toString());
-            if (filters.minRating) params.append("minRating", filters.minRating.toString());
-            if (filters.sortBy) params.append("sortBy", filters.sortBy);
+            if (filters.minRating && filters.minRating !== "any") params.append("minRating", filters.minRating.toString());
+            if (filters.sortBy && filters.sortBy !== "relevance") params.append("sortBy", filters.sortBy);
             if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
 
             const queryString = params.toString();
@@ -95,7 +99,6 @@ export default function TutorsPage() {
             const data = await res.json();
 
             if (data.success) {
-                // Handle both paginated and non-paginated responses
                 const tutorData = data.data?.data || data.data || [];
                 setTutors(Array.isArray(tutorData) ? tutorData : []);
                 setTotalCount(data.data?.total || tutorData.length || 0);
@@ -112,56 +115,43 @@ export default function TutorsPage() {
         }
     }, [buildFilters]);
 
-    // Update URL params when filters change
     const updateURL = useCallback(() => {
         const params = new URLSearchParams();
-        if (searchQuery) params.set("search", searchQuery);
-        if (selectedCategory) params.set("category", selectedCategory);
-        if (minRate) params.set("minRate", minRate);
-        if (maxRate) params.set("maxRate", maxRate);
-        if (minRating) params.set("minRating", minRating);
-        if (sortBy) params.set("sortBy", sortBy);
+        if (debouncedSearch) params.set("search", debouncedSearch);
+        if (selectedCategory && selectedCategory !== "all") params.set("category", selectedCategory);
+        if (debouncedMinRate) params.set("minRate", debouncedMinRate);
+        if (debouncedMaxRate) params.set("maxRate", debouncedMaxRate);
+        if (minRating && minRating !== "any") params.set("minRating", minRating);
+        if (sortBy && sortBy !== "relevance") params.set("sortBy", sortBy);
         if (sortOrder && sortOrder !== "desc") params.set("sortOrder", sortOrder);
 
         const newURL = params.toString() ? `?${params.toString()}` : "/tutors";
         router.push(newURL, { scroll: false });
-    }, [router, searchQuery, selectedCategory, minRate, maxRate, minRating, sortBy, sortOrder]);
+    }, [router, debouncedSearch, selectedCategory, debouncedMinRate, debouncedMaxRate, minRating, sortBy, sortOrder]);
 
-    // Fetch tutors when component mounts or URL params change
     useEffect(() => {
         fetchTutors();
-    }, [fetchTutors]);
+        updateURL();
+    }, [fetchTutors, updateURL]);
 
-    // Handle search with debounce
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            updateURL();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
-    // Apply filters
     const handleApplyFilters = () => {
         updateURL();
         fetchTutors();
     };
 
-    // Clear all filters
     const handleClearFilters = () => {
         setSearchQuery("");
-        setSelectedCategory("");
+        setSelectedCategory("all");
         setMinRate("");
         setMaxRate("");
-        setMinRating("");
-        setSortBy("");
+        setMinRating("any");
+        setSortBy("relevance");
         setSortOrder("desc");
         router.push("/tutors", { scroll: false });
     };
 
-    // Check if any filters are active
     const hasActiveFilters = searchQuery || selectedCategory || minRate || maxRate || minRating || sortBy;
 
-    // Get category name by ID
     const getCategoryName = (categoryId: string) => {
         const category = categories.find((c) => c.id === categoryId);
         return category?.name || "";
@@ -226,7 +216,7 @@ export default function TutorsPage() {
                                                 <SelectValue placeholder="All Categories" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">All Categories</SelectItem>
+                                                <SelectItem value="all">All Categories</SelectItem>
                                                 {categories.map((category) => (
                                                     <SelectItem key={category.id} value={category.id}>
                                                         {category.name}
@@ -268,7 +258,7 @@ export default function TutorsPage() {
                                                 <SelectValue placeholder="Any Rating" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">Any Rating</SelectItem>
+                                                <SelectItem value="any">Any Rating</SelectItem>
                                                 <SelectItem value="4.5">4.5+ Stars</SelectItem>
                                                 <SelectItem value="4">4+ Stars</SelectItem>
                                                 <SelectItem value="3.5">3.5+ Stars</SelectItem>
@@ -296,7 +286,7 @@ export default function TutorsPage() {
                                                 <SelectValue placeholder="Relevance" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">Relevance</SelectItem>
+                                                <SelectItem value="relevance">Relevance</SelectItem>
                                                 <SelectItem value="rating">Highest Rated</SelectItem>
                                                 <SelectItem value="price">Lowest Price</SelectItem>
                                                 <SelectItem value="experience">Most Experienced</SelectItem>
@@ -540,7 +530,7 @@ export default function TutorsPage() {
                                         asChild
                                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                                     >
-                                        <Link href={`/tutors/${tutor.id}`}>View Profile</Link>
+                                        <Link href={`/tutors/${tutor.userId}`}>View Profile</Link>
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -549,5 +539,44 @@ export default function TutorsPage() {
                 )}
             </div>
         </div>
+    );
+}
+export default function TutorsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
+                <div className="container mx-auto px-4">
+                    <div className="mb-8">
+                        <Skeleton className="h-12 w-96 mb-4" />
+                        <Skeleton className="h-6 w-full max-w-2xl" />
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[...Array(6)].map((_, i) => (
+                            <Card key={i} className="border-2">
+                                <CardContent className="p-6 space-y-4">
+                                    <div className="flex items-start gap-4">
+                                        <Skeleton className="w-16 h-16 rounded-full" />
+                                        <div className="flex-1 space-y-2">
+                                            <Skeleton className="h-5 w-32" />
+                                            <Skeleton className="h-4 w-24" />
+                                            <Skeleton className="h-4 w-20" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-12 w-full" />
+                                    <div className="flex gap-2">
+                                        <Skeleton className="h-6 w-16" />
+                                        <Skeleton className="h-6 w-16" />
+                                        <Skeleton className="h-6 w-16" />
+                                    </div>
+                                    <Skeleton className="h-10 w-full" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        }>
+            <TutorsContent />
+        </Suspense>
     );
 }

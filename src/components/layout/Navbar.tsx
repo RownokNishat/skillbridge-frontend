@@ -2,6 +2,7 @@
 
 import { Menu, LogOut, User, LayoutDashboard } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -88,12 +89,17 @@ const Navbar = ({
 }: Navbar1Props) => {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     await authClient.signOut();
     localStorage.removeItem("sb_user");
     router.push("/login");
     router.refresh();
+  };
+
+  const handleMobileMenuClose = () => {
+    setIsOpen(false);
   };
 
   const getDashboardUrl = () => {
@@ -134,7 +140,7 @@ const Navbar = ({
   };
   return (
     <section className={cn("py-4 ", className)}>
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 md:px-24 lg:px-24 xl:px-32">
         {/* Desktop Menu */}
         <nav className="hidden items-center justify-between lg:flex">
           <div className="flex items-center gap-6">
@@ -231,7 +237,7 @@ const Navbar = ({
                 {logo.title}
               </span>
             </a>
-            <Sheet>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
                   <Menu className="size-4" />
@@ -240,20 +246,18 @@ const Navbar = ({
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <SheetTitle>
-                      <a href={logo.url} className="flex items-center gap-2">
-                        {logo.src && (
-                          <img
-                            src={logo.src}
-                            className="max-h-8 dark:invert"
-                            alt={logo.alt}
-                          />
-                        )}
-                        <span className="text-xl font-bold tracking-tighter bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                          {logo.title}
-                        </span>
-                      </a>
-                    </SheetTitle>
+                    <a href={logo.url} className="flex items-center gap-2">
+                      {logo.src && (
+                        <img
+                          src={logo.src}
+                          className="max-h-8 dark:invert"
+                          alt={logo.alt}
+                        />
+                      )}
+                      <span className="text-xl font-bold tracking-tighter bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                        {logo.title}
+                      </span>
+                    </a>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
@@ -262,7 +266,7 @@ const Navbar = ({
                     collapsible
                     className="flex w-full flex-col gap-4"
                   >
-                    {menu.map((item) => renderMobileMenuItem(item))}
+                    {menu.map((item) => renderMobileMenuItem(item, handleMobileMenuClose))}
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
@@ -280,23 +284,23 @@ const Navbar = ({
                             <p className="text-xs text-muted-foreground">{session.user.email}</p>
                           </div>
                         </div>
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" onClick={handleMobileMenuClose}>
                           <Link href={getDashboardUrl()}>
                             <LayoutDashboard className="mr-2 h-4 w-4" />
                             Dashboard
                           </Link>
                         </Button>
-                        <Button onClick={handleLogout} variant="destructive">
+                        <Button onClick={() => { handleLogout(); handleMobileMenuClose(); }} variant="destructive">
                           <LogOut className="mr-2 h-4 w-4" />
                           Logout
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" onClick={handleMobileMenuClose}>
                           <Link href={auth.login.url}>{auth.login.title}</Link>
                         </Button>
-                        <Button asChild>
+                        <Button asChild onClick={handleMobileMenuClose}>
                           <Link href={auth.signup.url}>{auth.signup.title}</Link>
                         </Button>
                       </>
@@ -325,9 +329,9 @@ const renderMenuItem = (item: MenuItem) => {
   );
 };
 
-const renderMobileMenuItem = (item: MenuItem) => {
+const renderMobileMenuItem = (item: MenuItem, onClose?: () => void) => {
   return (
-    <Link key={item.title} href={item.url} className="text-md font-semibold">
+    <Link key={item.title} href={item.url} className="text-md font-semibold" onClick={onClose}>
       {item.title}
     </Link>
   );

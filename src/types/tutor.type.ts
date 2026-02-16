@@ -26,7 +26,7 @@ export interface TutorProfile {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
-  user?: User;
+  user: User;
   reviews?: Review[];
   rating?: number;
 }
@@ -36,9 +36,9 @@ export interface User {
   name: string;
   email: string;
   image?: string;
-  role: "student" | "tutor" | "admin";
-  createdAt: string;
-  updatedAt: string;
+  role?: "student" | "tutor" | "admin";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AvailabilitySlot {
@@ -85,8 +85,8 @@ export interface TutorFilters {
   categoryId?: string;
   minRate?: number;
   maxRate?: number;
-  minRating?: number;
+  minRating?: number | string;
   search?: string;
-  sortBy?: "rating" | "price" | "experience";
+  sortBy?: "rating" | "price" | "experience" | "relevance";
   sortOrder?: "asc" | "desc";
 }

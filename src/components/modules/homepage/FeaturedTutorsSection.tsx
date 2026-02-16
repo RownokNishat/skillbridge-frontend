@@ -182,8 +182,8 @@ export default function FeaturedTutorsSection({
     tutors = mockTutors,
 }: FeaturedTutorsSectionProps) {
     return (
-        <section className="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-            <div className="container mx-auto px-4">
+        <section className="py-16 md:py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+            <div className="container mx-auto px-4 sm:px-6 md:px-24 lg:px-24 xl:px-32">
                 {/* Section Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

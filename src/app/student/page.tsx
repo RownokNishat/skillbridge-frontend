@@ -104,25 +104,25 @@ export default function StudentDashboard() {
   const stats = [
     {
       title: "Total Bookings",
-      value: profile?.totalBookings || 0,
+      value: profile?.stats?.totalBookings || 0,
       icon: BookOpen,
       color: "from-blue-500 to-cyan-500",
     },
     {
       title: "Upcoming",
-      value: profile?.upcomingBookings || 0,
+      value: profile?.stats?.upcomingBookings || 0,
       icon: Calendar,
       color: "from-purple-500 to-pink-500",
     },
     {
       title: "Completed",
-      value: profile?.completedBookings || 0,
+      value: profile?.stats?.completedBookings || 0,
       icon: Clock,
       color: "from-green-500 to-emerald-500",
     },
     {
       title: "Reviews Given",
-      value: profile?.reviewsGiven || 0,
+      value: profile?.stats?.reviewsGiven || 0,
       icon: Star,
       color: "from-orange-500 to-red-500",
     },

@@ -6,20 +6,18 @@ import { tutorService } from "@/services/tutor.service";
 import { categoryService } from "@/services/category.service";
 
 export default async function Home() {
-  // Fetch featured tutors from backend
   const { data: tutorsResponse } = await tutorService.getFeaturedTutors({
     cache: "no-store",
   });
   const featuredTutors = tutorsResponse?.data || [];
 
-  // Fetch categories from backend
   const { data: categoriesResponse } = await categoryService.getAllCategories({
     revalidate: 3600, // Revalidate every hour
   });
   const categories = categoriesResponse?.data || [];
 
   return (
-    <main>
+    <main className="min-h-screen">
       <HeroSection />
       <FeaturedTutorsSection tutors={featuredTutors} />
       <CategoriesSection categories={categories} />

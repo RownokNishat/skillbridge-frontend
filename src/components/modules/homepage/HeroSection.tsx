@@ -14,7 +14,7 @@ export default function HeroSection() {
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
-            <div className="container mx-auto px-4 relative z-10">
+            <div className="container mx-auto px-4 sm:px-6 md:px-24 lg:px-24 xl:px-32 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     {/* Left Content */}
                     <motion.div

@@ -7,7 +7,6 @@ export async function proxy(request: NextRequest) {
 
   console.log("Middleware executing for path:", pathname);
 
-  // Skip auth check for public routes and static assets
   if (
     publicPaths.some((p) => pathname === p || (p !== "/" && pathname.startsWith(p + "/"))) ||
     pathname.startsWith("/_next") ||
@@ -17,18 +16,31 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get session token from cookies
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
+  console.log("All cookies:", request.cookies.getAll());
+  
+  let sessionToken = request.cookies.get("better-auth.session_token")?.value;
+  
+  if (!sessionToken) {
+    sessionToken = request.cookies.get("better-auth.session-token")?.value;
+  }
+  
+  if (!sessionToken) {
+    // Try underscore version
+    sessionToken = request.cookies.get("better_auth_session_token")?.value;
+  }
 
   if (!sessionToken) {
     console.log("No session token found, redirecting to login");
+    console.log("Tried cookie names: better-auth.session_token, better-auth.session-token, better_auth_session_token");
     return NextResponse.redirect(new URL("/login", request.url));
   }
+  
+  console.log("Session token found:", sessionToken.substring(0, 20) + "...");
 
   // Call backend to validate session
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/get-session`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
       {
         headers: {
           Cookie: `better-auth.session_token=${sessionToken}`,
@@ -43,13 +55,18 @@ export async function proxy(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log("Session data received:", JSON.stringify(data, null, 2));
 
-    const userRole = data?.data?.user?.role?.toUpperCase();
+    // Better Auth returns: { session: {...}, user: {...} }
+    const userRole = data?.user?.role?.toUpperCase();
 
     if (!userRole) {
-      console.log("No user role found, redirecting to login");
+      console.log("No user role found in session data");
+      console.log("User object:", data?.user);
       return NextResponse.redirect(new URL("/login", request.url));
     }
+    
+    console.log("User role from session:", userRole);
 
     // Admin role checks
     if (userRole === "ADMIN") {

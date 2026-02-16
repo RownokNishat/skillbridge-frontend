@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -31,6 +32,7 @@ export function AppSidebar({
   user: { role: string } & React.ComponentProps<typeof Sidebar>;
 }) {
   const router = useRouter();
+  const { setOpenMobile, isMobile } = useSidebar();
   let routes: Route[] = [];
 
   switch (user.role) {
@@ -54,8 +56,17 @@ export function AppSidebar({
   const handleLogout = async () => {
     await authClient.signOut();
     localStorage.removeItem("sb_user");
+    if (isMobile) {
+      setOpenMobile(false);
+    }
     router.push("/login");
     router.refresh();
+  };
+
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
@@ -68,7 +79,7 @@ export function AppSidebar({
               <SidebarMenu>
                 {item.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild onClick={handleMenuClick}>
                       <Link href={item.url}>{item.title}</Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -81,7 +92,7 @@ export function AppSidebar({
       <SidebarFooter className="p-4 border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild onClick={handleMenuClick}>
               <Link href="/">
                 <Home className="h-4 w-4" />
                 Home

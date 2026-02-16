@@ -7,19 +7,16 @@ interface ApiResponse<T> {
 }
 
 export const studentService = {
-  // Get student profile with stats
   getMyProfile: async (
     options?: RequestInit,
   ): Promise<{ data: any | null; error: any }> => {
     try {
-      console.log("Fetching profile from:", `${API_URL}/student/profile`);
       const res = await fetch(`${API_URL}/student/profile`, {
         credentials: "include",
         cache: "no-store",
         ...options,
       });
       const data = await res.json();
-      console.log("Profile response:", { status: res.status, data });
       if (!res.ok) {
         return {
           data: null,
@@ -28,12 +25,10 @@ export const studentService = {
       }
       return { data: data.data, error: null };
     } catch (err) {
-      console.error("Profile fetch error:", err);
       return { data: null, error: { message: "Failed to fetch profile" } };
     }
   },
 
-  // Update student profile
   updateProfile: async (
     profileData: {
       name?: string;
@@ -66,7 +61,6 @@ export const studentService = {
     }
   },
 
-  // Get all student's bookings
   getMyBookings: async (
     filters?: { status?: string; sortBy?: string; order?: string },
     options?: RequestInit,
@@ -80,15 +74,12 @@ export const studentService = {
       const queryString = params.toString();
       const url = `${API_URL}/bookings${queryString ? `?${queryString}` : ""}`;
 
-      console.log("Fetching bookings from URL:", url);
-
       const res = await fetch(url, {
         credentials: "include",
         cache: "no-store",
         ...options,
       });
       const data = await res.json();
-      console.log("Bookings response:", { status: res.status, data });
       if (!res.ok) {
         return {
           data: null,
@@ -97,12 +88,10 @@ export const studentService = {
       }
       return { data: data.data, error: null };
     } catch (err) {
-      console.error("Bookings fetch error:", err);
       return { data: null, error: { message: "Failed to fetch bookings" } };
     }
   },
 
-  // Create a new booking
   createBooking: async (
     bookingData: {
       tutorId: string;
@@ -134,7 +123,6 @@ export const studentService = {
     }
   },
 
-  // Get booking by ID
   getBookingById: async (
     bookingId: string,
     options?: RequestInit,

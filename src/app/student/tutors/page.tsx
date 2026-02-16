@@ -11,6 +11,7 @@ import { Search, Star, Clock, DollarSign, Loader2, Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TutorProfile, Category, TutorFilters } from "@/types";
 import Link from "next/link";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function BrowseTutorsPage() {
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
@@ -30,6 +31,12 @@ export default function BrowseTutorsPage() {
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // Debounced values
+  const debouncedSearch = useDebounce(search, 500);
+  const debouncedMinRate = useDebounce(minRate, 500);
+  const debouncedMaxRate = useDebounce(maxRate, 500);
+  const debouncedMinRating = useDebounce(minRating, 500);
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -37,11 +44,11 @@ export default function BrowseTutorsPage() {
   useEffect(() => {
     fetchTutors();
   }, [
-    search,
+    debouncedSearch,
     selectedCategory,
-    minRate,
-    maxRate,
-    minRating,
+    debouncedMinRate,
+    debouncedMaxRate,
+    debouncedMinRating,
     sortBy,
     sortOrder,
   ]);
@@ -58,11 +65,11 @@ export default function BrowseTutorsPage() {
     setError(null);
 
     const filters: TutorFilters = {
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       categoryId: selectedCategory || undefined,
-      minRate: minRate ? parseFloat(minRate) : undefined,
-      maxRate: maxRate ? parseFloat(maxRate) : undefined,
-      minRating: minRating ? parseFloat(minRating) : undefined,
+      minRate: debouncedMinRate ? parseFloat(debouncedMinRate) : undefined,
+      maxRate: debouncedMaxRate ? parseFloat(debouncedMaxRate) : undefined,
+      minRating: debouncedMinRating ? parseFloat(debouncedMinRating) : undefined,
       sortBy,
       sortOrder,
     };
@@ -76,7 +83,7 @@ export default function BrowseTutorsPage() {
     }
 
     console.log("Fetched tutors:", data);
-    setTutors(data?.data?.data || []);
+    setTutors(Array.isArray(data?.data) && data.data  || []);
     setLoading(false);
   };
 

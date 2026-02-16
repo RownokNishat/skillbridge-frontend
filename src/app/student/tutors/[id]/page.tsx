@@ -58,7 +58,6 @@ export default function TutorDetailPage() {
     fetchTutorData();
   }, [tutorId]);
 
-  // Handle Availability Parsing when Date Changes
   useEffect(() => {
     if (!bookingDate || !tutor) {
       setAvailableSlotsForDate([]);
@@ -70,11 +69,9 @@ export default function TutorDetailPage() {
       .toLocaleDateString("en-US", { weekday: "long" })
       .toLowerCase();
 
-    // Check if we have slots for this day name (e.g., 'monday')
     const slots = availabilityMap[dayName] || [];
     setAvailableSlotsForDate(slots);
 
-    // Reset selected times when date changes
     setStartTime("");
     setEndTime("");
   }, [bookingDate, availabilityMap, tutor]);
@@ -95,17 +92,22 @@ export default function TutorDetailPage() {
 
     const tutorData = tutorResult.data?.data;
 
-    // --- Build Availability Map from AvailabilitySlot[] ---
-    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     let parsedAvailability: Record<string, string[]> = {};
     if (tutorData?.availability) {
-      tutorData.availability.forEach((slot) => {
-        const dayName = dayNames[slot.dayOfWeek];
-        if (!parsedAvailability[dayName]) {
-          parsedAvailability[dayName] = [];
+      try {
+        if (typeof tutorData.availability === "string") {
+          parsedAvailability = JSON.parse(tutorData.availability);
+        } else if (Array.isArray(tutorData.availability)) {
+          if (tutorData.availability.length > 0 && typeof tutorData.availability[0] === "object") {
+            parsedAvailability = tutorData.availability[0] as unknown as Record<string, string[]>;
+          }
+        } else if (typeof tutorData.availability === "object") {
+          parsedAvailability = tutorData.availability as unknown as Record<string, string[]>;
         }
-        parsedAvailability[dayName].push(`${slot.startTime}-${slot.endTime}`);
-      });
+      } catch (err) {
+        console.error("Error parsing availability:", err);
+        parsedAvailability = {};
+      }
     }
 
     setAvailabilityMap(parsedAvailability);

@@ -18,7 +18,6 @@ interface CreateBookingData {
 }
 
 export const bookingService = {
-  // Create a new booking
   createBooking: async (
     data: CreateBookingData,
     options?: RequestInit,
@@ -39,7 +38,6 @@ export const bookingService = {
     }
   },
 
-  // Get user's bookings
   getMyBookings: async (
     options?: RequestInit,
   ): Promise<{ data: ApiResponse<Booking[]> | null; error: any }> => {
@@ -52,7 +50,6 @@ export const bookingService = {
     }
   },
 
-  // Get booking by ID
   getBookingById: async (
     id: string,
     options?: RequestInit,
@@ -66,7 +63,6 @@ export const bookingService = {
     }
   },
 
-  // Cancel booking
   cancelBooking: async (
     id: string,
     options?: RequestInit,

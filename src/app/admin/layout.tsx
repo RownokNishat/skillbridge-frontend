@@ -1,3 +1,5 @@
+"use client";
+
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import {
   Breadcrumb,
@@ -13,6 +15,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { RoleProtector } from "@/components/auth/RoleProtector";
 
 export default function AdminLayout({
   children,
@@ -24,6 +27,7 @@ export default function AdminLayout({
   };
 
   return (
+    <RoleProtector allowedRoles={["ADMIN"]}>
     <SidebarProvider>
       <AppSidebar user={userInfo} />
       <SidebarInset>
@@ -52,5 +56,6 @@ export default function AdminLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </RoleProtector>
   );
 }

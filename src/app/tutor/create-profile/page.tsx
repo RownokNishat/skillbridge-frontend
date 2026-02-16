@@ -58,7 +58,6 @@ export default function CreateTutorProfilePage() {
     setSaving(true);
 
     try {
-      // Use setup-profile endpoint for first-time profile creation
       await api.post("/api/register/setup-profile", {
         bio: bio.trim(),
         hourlyRate: parseFloat(hourlyRate),
@@ -69,7 +68,6 @@ export default function CreateTutorProfilePage() {
       toast.success("Profile created successfully");
       setSaving(false);
 
-      // Check status again to see next step
       try {
         const statusData = await api.get("/api/register/status");
         const nextStep = statusData?.data?.nextStep;

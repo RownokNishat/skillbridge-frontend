@@ -44,7 +44,7 @@ export const adminService = {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
-        credentials: "include", // Important for auth cookies
+        credentials: "include",
       });
       const data = await res.json();
       return { data, error: !res.ok ? data : null };
@@ -179,6 +179,36 @@ export const adminService = {
       return { data, error: null };
     } catch (err) {
       return { data: null, error: { message: "Failed to delete category" } };
+    }
+  },
+
+  getAdminStats: async function (options?: ServiceOptions) {
+    try {
+      const config: RequestInit = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      };
+
+      if (options?.cache) {
+        config.cache = options.cache;
+      }
+
+      if (options?.revalidate) {
+        config.next = { revalidate: options.revalidate };
+      }
+
+      const res = await fetch(`${API_URL}/admin/stats`, config);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch admin stats");
+      }
+
+      const data = await res.json();
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to load admin stats" } };
     }
   },
 };

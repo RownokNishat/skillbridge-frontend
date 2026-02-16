@@ -8,13 +8,13 @@ import { adminService } from "@/services/admin.service";
 import { Search, Calendar, Clock, DollarSign, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "@/hooks/use-debounce";
 
-// Update Interface to match UI needs
 interface UI_Booking {
   id: number;
   studentName: string;
   tutorName: string;
-  subject: string; // Will fallback to 'General' if not in DB
+  subject: string;
   date: string;
   time: string;
   status: string;
@@ -30,6 +30,9 @@ export default function AdminBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
+  // Debounced search
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -38,8 +41,8 @@ export default function AdminBookingsPage() {
     let filtered = bookings;
 
     // Filter by search query
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearch.trim() !== "") {
+      const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(
         (booking) =>
           booking.studentName.toLowerCase().includes(query) ||
@@ -56,7 +59,7 @@ export default function AdminBookingsPage() {
     }
 
     setFilteredBookings(filtered);
-  }, [searchQuery, filterStatus, bookings]);
+  }, [debouncedSearch, filterStatus, bookings]);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -112,8 +115,6 @@ export default function AdminBookingsPage() {
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
       case "CANCELLED":
         return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
-      case "PENDING":
-        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
       default:
         return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300";
     }
@@ -199,7 +200,6 @@ export default function AdminBookingsPage() {
           className="h-10 px-3 py-2 border rounded-md bg-background text-sm ring-offset-background focus:ring-2 focus:ring-ring"
         >
           <option value="all">All Status</option>
-          <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>

@@ -41,8 +41,8 @@ const steps = [
 
 export default function HowItWorksSection() {
     return (
-        <section id="how-it-works" className="py-20 bg-white dark:bg-gray-900">
-            <div className="container mx-auto px-4">
+        <section id="how-it-works" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+            <div className="container mx-auto px-4 sm:px-6 md:px-24 lg:px-24 xl:px-32">
                 {/* Section Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

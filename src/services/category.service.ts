@@ -16,9 +16,6 @@ export interface Category {
 }
 
 export const categoryService = {
-  /**
-   * Get all categories (public endpoint)
-   */
   getAllCategories: async function (options?: ServiceOptions) {
     try {
       const config: RequestInit = {
@@ -48,9 +45,6 @@ export const categoryService = {
     }
   },
 
-  /**
-   * Get a single category by ID
-   */
   getCategoryById: async function (categoryId: string) {
     try {
       const res = await fetch(`${API_URL}/categories/${categoryId}`, {
@@ -70,14 +64,13 @@ export const categoryService = {
     }
   },
 
-  // Create
   createCategory: async (name: string, description: string) => {
     try {
       const res = await fetch(`${API_URL}/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description }),
-        credentials: "include", // Important for Admin Auth
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to create");
@@ -87,7 +80,6 @@ export const categoryService = {
     }
   },
 
-  // Update
   updateCategory: async (id: string, name: string, description: string) => {
     try {
       const res = await fetch(`${API_URL}/categories/${id}`, {
@@ -104,7 +96,6 @@ export const categoryService = {
     }
   },
 
-  // Delete
   deleteCategory: async (id: string) => {
     try {
       const res = await fetch(`${API_URL}/categories/${id}`, {

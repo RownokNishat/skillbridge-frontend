@@ -52,7 +52,6 @@ export default function TutorProfilePage() {
     setProfile(profile);
     setCategories(categoriesResult.data.data || []);
 
-    // Set form values
     if (profile) {
       setBio(profile.bio || "");
       setHourlyRate(profile.hourlyRate?.toString() || "");

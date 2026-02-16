@@ -17,7 +17,6 @@ interface PaginatedResponse<T> {
 }
 
 export const tutorService = {
-  // Get all tutors with filters
   getTutors: async (
     filters?: TutorFilters,
     options?: RequestInit,
@@ -49,7 +48,6 @@ export const tutorService = {
     }
   },
 
-  // Get single tutor by ID
   getTutorById: async (
     id: string,
     options?: RequestInit,
@@ -63,7 +61,6 @@ export const tutorService = {
     }
   },
 
-  // Get featured tutors
   getFeaturedTutors: async (
     options?: RequestInit,
   ): Promise<{ data: ApiResponse<TutorProfile[]> | null; error: any }> => {
@@ -82,7 +79,6 @@ export const tutorService = {
     }
   },
 
-  // Get all categories
   getCategories: async (
     options?: RequestInit,
   ): Promise<{ data: ApiResponse<Category[]> | null; error: any }> => {
@@ -95,7 +91,6 @@ export const tutorService = {
     }
   },
 
-  // Update tutor profile (for tutors)
   updateTutorProfile: async (
     data: Partial<TutorProfile>,
     options?: RequestInit,
@@ -117,7 +112,6 @@ export const tutorService = {
     }
   },
 
-  // Alias for updateTutorProfile
   updateProfile: async (
     data: Partial<TutorProfile>,
     options?: RequestInit,
@@ -125,7 +119,6 @@ export const tutorService = {
     return tutorService.updateTutorProfile(data, options);
   },
 
-  // Update tutor availability
   updateAvailability: async (
     availability: Record<string, string[]>,
     options?: RequestInit,
@@ -150,7 +143,6 @@ export const tutorService = {
     }
   },
 
-  // Get tutor's own profile
   getMyProfile: async (
     options?: RequestInit,
   ): Promise<{ data: any | null; error: any }> => {
@@ -167,7 +159,6 @@ export const tutorService = {
     }
   },
 
-  // Get tutor's sessions/bookings
   getMySessions: async (
     status?: string,
     options?: RequestInit,
@@ -189,7 +180,6 @@ export const tutorService = {
     }
   },
 
-  // Mark session as complete
   markSessionComplete: async (
     bookingId: number,
   ): Promise<{ data: any | null; error: any }> => {
@@ -214,7 +204,6 @@ export const tutorService = {
     }
   },
 
-  // Get dashboard statistics
   getDashboardStats: async (
     options?: RequestInit,
   ): Promise<{ data: any | null; error: any }> => {
@@ -233,7 +222,7 @@ export const tutorService = {
       };
     }
   },
-  // Accept a pending session
+
   acceptSession: async (
     bookingId: number,
   ): Promise<{ data: any | null; error: any }> => {
@@ -247,7 +236,6 @@ export const tutorService = {
       });
       const data = await res.json();
 
-      // Handle potential API error responses explicitly if needed
       if (data.success === false) {
         return { data: null, error: { message: data.message } };
       }
@@ -261,7 +249,6 @@ export const tutorService = {
     }
   },
 
-  // Cancel a session
   cancelSession: async (
     bookingId: number,
   ): Promise<{ data: any | null; error: any }> => {
