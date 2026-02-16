@@ -1,6 +1,6 @@
 import { env } from "@/env";
 
-const API_URL = env.API_URL;
+const API_URL = env.NEXT_PUBLIC_API_URL;
 
 //* No Dynamic and No { cache: no-store } : SSG -> Static Page
 //* { cache: no-store } : SSR -> Dynamic Page
