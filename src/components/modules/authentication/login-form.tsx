@@ -118,11 +118,11 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           // If role not in response, try fetching session to get role
           console.log("No role in login response, fetching session...");
           const session = await authClient.getSession();
-          const sessionUser = session?.data?.user;
+          const sessionUser = session?.data?.user as any;
           console.log("Fetched session user:", sessionUser);
           
           if (sessionUser?.role) {
-            const role = String((sessionUser as any).role).toLowerCase();
+            const role = String(sessionUser.role).toLowerCase();
             if (role === "admin") {
               router.push("/admin");
             } else if (role === "tutor") {
