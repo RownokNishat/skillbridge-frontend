@@ -237,7 +237,7 @@ export default function FeaturedTutorsSection({
                                             <div className="flex items-center gap-1 mt-1">
                                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                                 <span className="font-semibold text-gray-900 dark:text-white">
-                                                    {tutor.rating || 0}
+                                                    {tutor.rating || tutor.averageRating|| 0}
                                                 </span>
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">
                                                     ({tutor.totalReviews || 0} reviews)
@@ -283,7 +283,7 @@ export default function FeaturedTutorsSection({
                                         asChild
                                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                                     >
-                                        <Link href={`/tutors/${tutor.id}`}>View Profile</Link>
+                                        <Link href={`/tutors/${tutor.user.id}`}>View Profile</Link>
                                     </Button>
                                 </CardContent>
                             </Card>
