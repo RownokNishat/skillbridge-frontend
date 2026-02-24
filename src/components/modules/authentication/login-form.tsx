@@ -114,6 +114,26 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
           // Default fallback
           router.push("/dashboard");
+        } else {
+          // If role not in response, try fetching session to get role
+          console.log("No role in login response, fetching session...");
+          const session = await authClient.getSession();
+          const sessionUser = session?.data?.user;
+          console.log("Fetched session user:", sessionUser);
+          
+          if (sessionUser?.role) {
+            const role = String((sessionUser as any).role).toLowerCase();
+            if (role === "admin") {
+              router.push("/admin");
+            } else if (role === "tutor") {
+              router.push("/tutor/dashboard");
+            } else {
+              router.push("/student");
+            }
+          } else {
+            // Final fallback
+            router.push("/dashboard");
+          }
         }
       } catch (err) {
         toast.error("Something went wrong, please try again.", { id: toastId });
