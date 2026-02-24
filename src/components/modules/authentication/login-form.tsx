@@ -63,15 +63,29 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         console.log("User object:", (data as any)?.user);
         console.log("User role:", (data as any)?.user?.role);
 
+        // Fetch session to get the token and set frontend cookie
+        const session = await authClient.getSession();
+        console.log("Session after login:", session);
+        
+        if (session?.data?.session?.token) {
+          // Set cookie on frontend domain for middleware access
+          document.cookie = `sb_session_token=${session.data.session.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+          console.log("Set frontend session cookie");
+        }
+        
         // Store user info in localStorage for client-side access
-        if ((data as any)?.user && typeof window !== "undefined") {
-          console.log("Storing user in localStorage:", (data as any).user);
-          localStorage.setItem("sb_user", JSON.stringify((data as any).user));
+        const user = session?.data?.user || (data as any)?.user;
+        if (user && typeof window !== "undefined") {
+          console.log("Storing user in localStorage:", user);
+          localStorage.setItem("sb_user", JSON.stringify(user));
+          // Also set role in cookie for middleware
+          document.cookie = `sb_user_role=${(user as any).role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
         }
 
         // Route user by role (handle different casing)
-        if ((data as any)?.user?.role) {
-          const role = String((data as any).user.role).toLowerCase();
+        const userRole = (user as any)?.role;
+        if (userRole) {
+          const role = String(userRole).toLowerCase();
           console.log("Routing user with role:", role);
 
           if (role === "admin") {
@@ -115,25 +129,9 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           // Default fallback
           router.push("/dashboard");
         } else {
-          // If role not in response, try fetching session to get role
-          console.log("No role in login response, fetching session...");
-          const session = await authClient.getSession();
-          const sessionUser = session?.data?.user as any;
-          console.log("Fetched session user:", sessionUser);
-          
-          if (sessionUser?.role) {
-            const role = String(sessionUser.role).toLowerCase();
-            if (role === "admin") {
-              router.push("/admin");
-            } else if (role === "tutor") {
-              router.push("/tutor/dashboard");
-            } else {
-              router.push("/student");
-            }
-          } else {
-            // Final fallback
-            router.push("/dashboard");
-          }
+          // No role found at all, go to dashboard
+          console.log("No role found, redirecting to dashboard");
+          router.push("/dashboard");
         }
       } catch (err) {
         toast.error("Something went wrong, please try again.", { id: toastId });

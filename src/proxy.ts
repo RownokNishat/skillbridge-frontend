@@ -18,26 +18,54 @@ export async function proxy(request: NextRequest) {
 
   console.log("All cookies:", request.cookies.getAll());
   
-  let sessionToken = request.cookies.get("better-auth.session_token")?.value;
+  // Check for frontend-set cookies first (set after login)
+  let sessionToken = request.cookies.get("sb_session_token")?.value;
+  const userRole = request.cookies.get("sb_user_role")?.value;
   
+  // Fallback to better-auth cookies (in case same-domain setup)
+  if (!sessionToken) {
+    sessionToken = request.cookies.get("better-auth.session_token")?.value;
+  }
   if (!sessionToken) {
     sessionToken = request.cookies.get("better-auth.session-token")?.value;
-  }
-  
-  if (!sessionToken) {
-    // Try underscore version
-    sessionToken = request.cookies.get("better_auth_session_token")?.value;
   }
 
   if (!sessionToken) {
     console.log("No session token found, redirecting to login");
-    console.log("Tried cookie names: better-auth.session_token, better-auth.session-token, better_auth_session_token");
     return NextResponse.redirect(new URL("/login", request.url));
   }
   
   console.log("Session token found:", sessionToken.substring(0, 20) + "...");
+  console.log("User role from cookie:", userRole);
 
-  // Call backend to validate session
+  // If we have the role cookie, use it directly (faster, no backend call)
+  if (userRole) {
+    const role = userRole.toUpperCase();
+    
+    // Admin role checks
+    if (role === "ADMIN") {
+      if (pathname.startsWith("/dashboard") || pathname.startsWith("/tutor")) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+    } else {
+      // Non-admin users can't access admin routes
+      if (pathname.startsWith("/admin")) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      if (role === "TUTOR" && pathname.startsWith("/dashboard")) {
+        return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
+      }
+
+      if (role === "STUDENT" && pathname.startsWith("/tutor")) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    }
+
+    return NextResponse.next();
+  }
+
+  // Fallback: validate session with backend if no role cookie
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/get-session`,
@@ -57,36 +85,28 @@ export async function proxy(request: NextRequest) {
     const data = await response.json();
     console.log("Session data received:", JSON.stringify(data, null, 2));
 
-    // Better Auth returns: { session: {...}, user: {...} }
-    const userRole = data?.user?.role?.toUpperCase();
+    const fetchedRole = data?.user?.role?.toUpperCase();
 
-    if (!userRole) {
+    if (!fetchedRole) {
       console.log("No user role found in session data");
-      console.log("User object:", data?.user);
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    
-    console.log("User role from session:", userRole);
 
     // Admin role checks
-    if (userRole === "ADMIN") {
-      // Admin can't access user or tutor dashboards
+    if (fetchedRole === "ADMIN") {
       if (pathname.startsWith("/dashboard") || pathname.startsWith("/tutor")) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     } else {
-      // Non-admin users can't access admin routes
       if (pathname.startsWith("/admin")) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // Tutor-specific routes
-      if (userRole === "TUTOR" && pathname.startsWith("/dashboard")) {
+      if (fetchedRole === "TUTOR" && pathname.startsWith("/dashboard")) {
         return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
       }
 
-      // Student trying to access tutor routes
-      if (userRole === "STUDENT" && pathname.startsWith("/tutor")) {
+      if (fetchedRole === "STUDENT" && pathname.startsWith("/tutor")) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }
