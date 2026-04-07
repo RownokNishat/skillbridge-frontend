@@ -70,11 +70,6 @@ export default function Footer() {
                   About
                 </Link>
               </li>
-              <li>
-                <Link href="/blog" className="hover:text-primary transition-colors">
-                  Blog
-                </Link>
-              </li>
             </ul>
           </div>
 

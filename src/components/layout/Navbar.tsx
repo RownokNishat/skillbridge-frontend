@@ -154,7 +154,6 @@ const Navbar = ({
       title: "Resources",
       url: "#",
       items: [
-        { title: "Blog", url: "/blog" },
         { title: "Help Center", url: "/help" },
         { title: "Privacy", url: "/privacy" },
       ],

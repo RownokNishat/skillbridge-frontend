@@ -7,7 +7,6 @@ const publicPaths = [
   "/about",
   "/contact",
   "/tutors",
-  "/blog",
   "/help",
   "/privacy",
   "/not-found",

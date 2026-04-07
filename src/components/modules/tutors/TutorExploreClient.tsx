@@ -315,6 +315,7 @@ export default function TutorExploreClient({
                 const tutorCategories =
                   tutor.categories?.map((item: Category) => item.name) || [];
                 const categoryText = tutorCategories.join(", ") || tutor.education || "General";
+                const detailId = tutor.userId || tutor.user?.id || tutor.id;
 
                 return (
                   <motion.div
@@ -351,7 +352,7 @@ export default function TutorExploreClient({
                       </div>
 
                       <Button asChild className="mt-4 w-full">
-                        <Link href={`${detailsBasePath}/${tutor.id}`}>View Details</Link>
+                        <Link href={`${detailsBasePath}/${detailId}`}>View Details</Link>
                       </Button>
                     </CardContent>
                   </Card>

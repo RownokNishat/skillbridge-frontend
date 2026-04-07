@@ -25,7 +25,32 @@ export default function TutorDetailPage() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await tutorService.getTutorById(id);
+      let { data, error } = await tutorService.getTutorById(id);
+
+      if (error || !data?.success || !data.data) {
+        const fallback = await tutorService.getTutors({
+          search: id,
+          sortBy: "rating",
+          sortOrder: "desc",
+        });
+
+        const payload = fallback.data?.data as unknown;
+        const fallbackList = Array.isArray(payload)
+          ? payload
+          : payload && typeof payload === "object" && "data" in payload && Array.isArray((payload as { data: unknown }).data)
+            ? ((payload as { data: TutorProfile[] }).data ?? [])
+            : [];
+
+        const matchedTutor = fallbackList.find(
+          (item: TutorProfile) => item.userId === id || item.id === id || item.user?.id === id,
+        );
+
+        if (matchedTutor?.id && matchedTutor.id !== id) {
+          const secondTry = await tutorService.getTutorById(matchedTutor.id);
+          data = secondTry.data;
+          error = secondTry.error;
+        }
+      }
 
       if (error || !data?.success || !data.data) {
         setError(error?.message || "Tutor profile not found");
@@ -42,8 +67,18 @@ export default function TutorDetailPage() {
         sortOrder: "desc",
       });
 
-      const items = related.data?.data?.data || [];
-      setRelatedTutors(items.filter((item) => item.id !== id).slice(0, 4));
+      const relatedPayload = related.data?.data as unknown;
+      const items = Array.isArray(relatedPayload)
+        ? relatedPayload
+        : relatedPayload && typeof relatedPayload === "object" && "data" in relatedPayload && Array.isArray((relatedPayload as { data: unknown }).data)
+          ? ((relatedPayload as { data: TutorProfile[] }).data ?? [])
+          : [];
+
+      setRelatedTutors(
+        items
+          .filter((item) => item.id !== tutorProfile.id && item.userId !== tutorProfile.userId)
+          .slice(0, 4),
+      );
       setLoading(false);
     };
 
@@ -63,7 +98,7 @@ export default function TutorDetailPage() {
       <main className="app-shell min-h-screen py-12">
         <section className="section-wrap space-y-4">
           <Skeleton className="h-10 w-72" />
-          <Skeleton className="h-[320px] w-full rounded-xl" />
+          <Skeleton className="h-80 w-full rounded-xl" />
           <Skeleton className="h-40 w-full rounded-xl" />
         </section>
       </main>
@@ -205,12 +240,12 @@ export default function TutorDetailPage() {
                   <img
                     src={`https://picsum.photos/seed/related-${item.id}/600/400`}
                     alt={item.user?.name || "Tutor"}
-                    className="aspect-[4/3] w-full rounded-lg object-cover"
+                    className="aspect-4/3 w-full rounded-lg object-cover"
                   />
                   <p className="font-semibold">{item.user?.name}</p>
                   <p className="text-sm text-muted-foreground">${item.hourlyRate}/hour</p>
                   <Button asChild className="w-full" variant="outline">
-                    <Link href={`/tutors/${item.id}`}>View Details</Link>
+                    <Link href={`/tutors/${item.userId || item.user?.id || item.id}`}>View Details</Link>
                   </Button>
                 </CardContent>
               </Card>
