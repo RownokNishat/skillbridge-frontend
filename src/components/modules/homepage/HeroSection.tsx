@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
     return (
-        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950 py-20 md:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-cyan-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950 min-h-[65vh] flex items-center py-14 md:py-20">
             {/* Animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
@@ -24,32 +24,32 @@ export default function HeroSection() {
                         className="space-y-8"
                     >
                         <div className="inline-block">
-                            <span className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-semibold">
-                                🎓 Your Learning Journey Starts Here
+                            <span className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                                Live 1:1 tutoring in 40+ subjects
                             </span>
                         </div>
 
                         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
                             Connect with{" "}
-                            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-primary via-blue-500 to-cyan-500 bg-clip-text text-transparent">
                                 Expert Tutors
                             </span>
                             , Learn Anything
                         </h1>
 
-                        <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+                        <p className="text-xl text-muted-foreground leading-relaxed">
                             Find qualified tutors for any subject. Book sessions instantly and
                             start learning from the best educators around the world.
                         </p>
 
                         {/* Search Bar */}
-                        <div className="flex flex-col sm:flex-row gap-3 p-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
+                        <div className="flex flex-col sm:flex-row gap-3 p-2 bg-card rounded-2xl shadow-xl border">
                             <div className="flex-1 flex items-center gap-3 px-4">
-                                <Search className="text-gray-400" />
+                                <Search className="text-muted-foreground" />
                                 <input
                                     type="text"
                                     placeholder="Search for subjects, tutors..."
-                                    className="w-full py-3 bg-transparent outline-none text-gray-700 dark:text-gray-200"
+                                    className="w-full py-3 bg-transparent outline-none text-foreground"
                                 />
                             </div>
                             <Button
@@ -64,46 +64,52 @@ export default function HeroSection() {
                         {/* Stats */}
                         <div className="flex flex-wrap gap-8 pt-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                    <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                <div className="p-3 bg-primary/10 rounded-lg">
+                                    <Users className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    <div className="text-2xl font-bold">
                                         500+
                                     </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="text-sm text-muted-foreground">
                                         Expert Tutors
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                                    <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                                <div className="p-3 bg-cyan-500/10 rounded-lg">
+                                    <BookOpen className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    <div className="text-2xl font-bold">
                                         10,000+
                                     </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="text-sm text-muted-foreground">
                                         Sessions Completed
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                                    <Award className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                <div className="p-3 bg-emerald-500/10 rounded-lg">
+                                    <Award className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    <div className="text-2xl font-bold">
                                         4.9/5
                                     </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="text-sm text-muted-foreground">
                                         Average Rating
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div>
+                            <Button asChild variant="ghost" className="mt-2">
+                                <Link href="#featured-tutors">Explore featured tutors</Link>
+                            </Button>
                         </div>
                     </motion.div>
 

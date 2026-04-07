@@ -29,6 +29,8 @@ export default function AdminBookingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
 
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 500);
@@ -60,6 +62,10 @@ export default function AdminBookingsPage() {
 
     setFilteredBookings(filtered);
   }, [debouncedSearch, filterStatus, bookings]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, filterStatus]);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -123,6 +129,12 @@ export default function AdminBookingsPage() {
   const totalRevenue = bookings
     .filter((b) => b.status === "COMPLETED")
     .reduce((sum, b) => sum + b.amount, 0);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
+  const paginatedBookings = filteredBookings.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
+  );
 
   if (loading) {
     return (
@@ -221,7 +233,7 @@ export default function AdminBookingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredBookings.map((booking) => (
+              {paginatedBookings.map((booking) => (
                 <div
                   key={booking.id}
                   className="p-4 border rounded-lg hover:border-primary/50 transition-colors bg-card"
@@ -268,6 +280,30 @@ export default function AdminBookingsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {filteredBookings.length > pageSize && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              >
+                Next
+              </Button>
             </div>
           )}
         </CardContent>

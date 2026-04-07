@@ -128,6 +128,15 @@ export default function StudentDashboard() {
     },
   ];
 
+  const progressData = [
+    profile?.stats?.totalBookings || 0,
+    profile?.stats?.upcomingBookings || 0,
+    profile?.stats?.completedBookings || 0,
+    profile?.stats?.reviewsGiven || 0,
+  ];
+
+  const maxProgress = Math.max(...progressData, 1);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -172,6 +181,27 @@ export default function StudentDashboard() {
       </div>
 
       {/* Upcoming Sessions */}
+      <Card className="border-2">
+        <CardHeader>
+          <CardTitle>Learning Activity Chart</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex h-48 items-end gap-4">
+            {progressData.map((value, idx) => (
+              <div key={idx} className="flex flex-1 flex-col items-center gap-2">
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-500"
+                  style={{ height: `${(value / maxProgress) * 100}%` }}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {idx === 0 ? "Bookings" : idx === 1 ? "Upcoming" : idx === 2 ? "Completed" : "Reviews"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-2">
         <CardHeader>
           <div className="flex items-center justify-between">

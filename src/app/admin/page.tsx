@@ -79,6 +79,17 @@ export default function AdminDashboard() {
     },
   ] : [];
 
+  const chartSeries = stats
+    ? [
+        stats.totalStudents,
+        stats.totalTutors,
+        stats.totalBookings,
+        Math.max(1, Math.round(stats.totalRevenue / 100)),
+      ]
+    : [];
+
+  const chartMax = Math.max(...chartSeries, 1);
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -152,6 +163,29 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Users */}
+      {stats && (
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle>Growth Snapshot</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex h-56 items-end gap-4">
+              {chartSeries.map((value, idx) => (
+                <div key={idx} className="flex flex-1 flex-col items-center gap-2">
+                  <div
+                    className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-500"
+                    style={{ height: `${(value / chartMax) * 100}%` }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {idx === 0 ? "Students" : idx === 1 ? "Tutors" : idx === 2 ? "Bookings" : "Revenue/100"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {stats && stats.recentUsers.length > 0 && (
         <Card className="border-2">
           <CardHeader>

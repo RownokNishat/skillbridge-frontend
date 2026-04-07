@@ -126,6 +126,15 @@ export default function TutorDashboard() {
     },
   ];
 
+  const trendData = [
+    dashboardData?.totalSessions || 0,
+    dashboardData?.upcomingSessions || 0,
+    Math.round(dashboardData?.totalEarnings || 0),
+    Math.round((dashboardData?.averageRating || 0) * 10),
+  ];
+
+  const trendMax = Math.max(...trendData, 1);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -170,6 +179,27 @@ export default function TutorDashboard() {
       </div>
 
       {/* Recent Sessions */}
+      <Card className="border-2">
+        <CardHeader>
+          <CardTitle>Performance Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex h-48 items-end gap-4">
+            {trendData.map((value, idx) => (
+              <div key={idx} className="flex flex-1 flex-col items-center gap-2">
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-indigo-500"
+                  style={{ height: `${(value / trendMax) * 100}%` }}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {idx === 0 ? "Sessions" : idx === 1 ? "Upcoming" : idx === 2 ? "Earnings" : "Rating x10"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-2">
         <CardHeader>
           <div className="flex items-center justify-between">

@@ -20,9 +20,10 @@ import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
-import { GraduationCap, Users } from "lucide-react";
+import { GraduationCap, Users, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "This field is required"),
@@ -35,14 +36,14 @@ const formSchema = z.object({
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGoogleLogin = async () => {
-    const data = authClient.signIn.social({
-      provider: "google",
-      callbackURL: "http://localhost:3000",
-    });
+    await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+  };
 
-    console.log(data);
+  const handleFacebookLogin = async () => {
+    await authClient.signIn.social({ provider: "facebook", callbackURL: "/" } as any);
   };
 
   const form = useForm({
@@ -56,6 +57,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
+      setIsSubmitting(true);
       const toastId = toast.loading("Creating user");
       try {
         const data = await api.post("/api/register", {
@@ -77,6 +79,8 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
         toast.error(err.message || "Something went wrong, please try again.", {
           id: toastId,
         });
+      } finally {
+        setIsSubmitting(false);
       }
     },
   });
@@ -235,17 +239,24 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-5 justify-end">
-        <Button form="login-form" type="submit" className="w-full">
-          Register
+        <Button form="login-form" type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            "Register"
+          )}
         </Button>
-        {/* <Button
-          onClick={() => handleGoogleLogin()}
-          variant="outline"
-          type="button"
-          className="w-full"
-        >
-          Continue with Google
-        </Button> */}
+        <div className="grid w-full gap-2 sm:grid-cols-2">
+          <Button onClick={() => handleGoogleLogin()} variant="outline" type="button">
+            Continue with Google
+          </Button>
+          <Button onClick={() => handleFacebookLogin()} variant="outline" type="button">
+            Continue with Facebook
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

@@ -20,8 +20,10 @@ import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   password: z.string().min(8, "Minimum length is 8"),
@@ -29,11 +31,14 @@ const formSchema = z.object({
 });
 
 export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleGoogleLogin = async () => {
-    const data = authClient.signIn.social({
-      provider: "google",
-      callbackURL: "http://localhost:3000",
-    });
+    await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+  };
+
+  const handleFacebookLogin = async () => {
+    await authClient.signIn.social({ provider: "facebook", callbackURL: "/" } as any);
   };
 
   const router = useRouter();
@@ -47,6 +52,7 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
+      setIsSubmitting(true);
       const toastId = toast.loading("Logging in");
       try {
         const { data, error } = await authClient.signIn.email(value);
@@ -135,6 +141,8 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         }
       } catch (err) {
         toast.error("Something went wrong, please try again.", { id: toastId });
+      } finally {
+        setIsSubmitting(false);
       }
     },
   });
@@ -204,17 +212,40 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-5 justify-end">
-        <Button form="login-form" type="submit" className="w-full">
-          Login
-        </Button>
-        {/* <Button
-          onClick={() => handleGoogleLogin()}
-          variant="outline"
-          type="button"
+        <Button
+          form="login-form"
+          type="submit"
           className="w-full"
+          disabled={isSubmitting}
         >
-          Continue with Google
-        </Button> */}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
+        </Button>
+        <div className="grid w-full gap-2 sm:grid-cols-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              form.setFieldValue("email", "student@skillbridge.com");
+              form.setFieldValue("password", "Student@123");
+              toast.success("Demo credentials autofilled");
+            }}
+          >
+            Demo Login
+          </Button>
+          <Button type="button" variant="outline" onClick={handleGoogleLogin}>
+            Google Login
+          </Button>
+          <Button type="button" variant="outline" onClick={handleFacebookLogin} className="sm:col-span-2">
+            Facebook Login
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

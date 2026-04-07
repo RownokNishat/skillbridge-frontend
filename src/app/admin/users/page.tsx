@@ -25,7 +25,10 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const pageSize = 8;
 
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 500);
@@ -35,20 +38,26 @@ export default function AdminUsersPage() {
   }, []);
 
   useEffect(() => {
-    if (debouncedSearch.trim() === "") {
-      setFilteredUsers(users);
-    } else {
-      const query = debouncedSearch.toLowerCase();
-      setFilteredUsers(
-        users.filter(
-          (user) =>
-            user.name.toLowerCase().includes(query) ||
-            user.email.toLowerCase().includes(query) ||
-            user.role.toLowerCase().includes(query),
-        ),
-      );
-    }
-  }, [debouncedSearch, users]);
+    const query = debouncedSearch.toLowerCase();
+    const filtered = users.filter((user) => {
+      const matchesSearch =
+        query.trim() === "" ||
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.role.toLowerCase().includes(query);
+
+      const matchesRole =
+        roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
+
+      return matchesSearch && matchesRole;
+    });
+
+    setFilteredUsers(filtered);
+  }, [debouncedSearch, roleFilter, users]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, roleFilter]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -105,6 +114,9 @@ export default function AdminUsersPage() {
 
     setUpdatingUserId(null);
   };
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
 
   if (loading) {
     return (
@@ -198,6 +210,16 @@ export default function AdminUsersPage() {
         >
           Refresh
         </Button>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="h-10 sm:h-12 rounded-md border-2 bg-background px-3 text-sm"
+        >
+          <option value="all">All roles</option>
+          <option value="student">Students</option>
+          <option value="tutor">Tutors</option>
+          <option value="admin">Admins</option>
+        </select>
       </div>
 
       {/* Stats */}
@@ -246,7 +268,7 @@ export default function AdminUsersPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <div
                   key={user.id}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-2 rounded-lg"
@@ -322,6 +344,30 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {filteredUsers.length > pageSize && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              >
+                Next
+              </Button>
             </div>
           )}
         </CardContent>

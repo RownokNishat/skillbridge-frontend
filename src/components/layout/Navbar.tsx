@@ -138,9 +138,41 @@ const Navbar = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const baseLoggedOutMenu: MenuItem[] = [
+    { title: "Home", url: "/" },
+    { title: "Find Tutors", url: "/tutors" },
+    { title: "About", url: "/about" },
+    { title: "Contact", url: "/contact" },
+  ];
+
+  const baseLoggedInMenu: MenuItem[] = [
+    { title: "Home", url: "/" },
+    { title: "Find Tutors", url: "/tutors" },
+    { title: "About", url: "/about" },
+    {
+      title: "Resources",
+      url: "#",
+      items: [
+        { title: "Blog", url: "/blog" },
+        { title: "Help Center", url: "/help" },
+        { title: "Privacy", url: "/privacy" },
+      ],
+    },
+    { title: "Dashboard", url: getDashboardUrl() },
+    { title: "Profile", url: getProfileUrl() },
+  ];
+
+  const activeMenu = session?.user ? baseLoggedInMenu : baseLoggedOutMenu;
+
   return (
-    <section className={cn("py-4 ", className)}>
-      <div className="container mx-auto px-4 sm:px-6 md:px-24 lg:px-24 xl:px-32">
+    <section
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/90 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+        className,
+      )}
+    >
+      <div className="section-wrap">
         {/* Desktop Menu */}
         <nav className="hidden items-center justify-between lg:flex">
           <div className="flex items-center gap-6">
@@ -160,7 +192,7 @@ const Navbar = ({
             <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
+                  {activeMenu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -266,7 +298,7 @@ const Navbar = ({
                     collapsible
                     className="flex w-full flex-col gap-4"
                   >
-                    {menu.map((item) => renderMobileMenuItem(item, handleMobileMenuClose))}
+                    {activeMenu.map((item) => renderMobileMenuItem(item, handleMobileMenuClose))}
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
@@ -317,6 +349,27 @@ const Navbar = ({
 };
 
 const renderMenuItem = (item: MenuItem) => {
+  if (item.items && item.items.length > 0) {
+    return (
+      <NavigationMenuItem key={item.title}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-10 rounded-md px-4 text-sm font-medium">
+              {item.title}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {item.items.map((subItem) => (
+              <DropdownMenuItem key={subItem.title} asChild>
+                <Link href={subItem.url}>{subItem.title}</Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </NavigationMenuItem>
+    );
+  }
+
   return (
     <NavigationMenuItem key={item.title}>
       <NavigationMenuLink
@@ -330,6 +383,26 @@ const renderMenuItem = (item: MenuItem) => {
 };
 
 const renderMobileMenuItem = (item: MenuItem, onClose?: () => void) => {
+  if (item.items && item.items.length > 0) {
+    return (
+      <div key={item.title} className="space-y-2">
+        <p className="text-sm font-semibold text-muted-foreground">{item.title}</p>
+        <div className="space-y-2 pl-2">
+          {item.items.map((subItem) => (
+            <Link
+              key={subItem.title}
+              href={subItem.url}
+              className="block text-md font-semibold"
+              onClick={onClose}
+            >
+              {subItem.title}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Link key={item.title} href={item.url} className="text-md font-semibold" onClick={onClose}>
       {item.title}
