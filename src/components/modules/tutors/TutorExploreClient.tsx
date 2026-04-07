@@ -19,6 +19,7 @@ import { categoryService } from "@/services/category.service";
 import { tutorService } from "@/services/tutor.service";
 import { Category, TutorProfile } from "@/types";
 import { Search, Star, Clock, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
 
 const PAGE_SIZE = 8;
 
@@ -77,7 +78,20 @@ export default function TutorExploreClient({
         setError(tutorResult.error?.message || "Unable to load tutors");
         setTutors([]);
       } else {
-        const tutorData = tutorResult.data.data?.data || [];
+        const payload = tutorResult.data.data as unknown;
+        let tutorData: TutorProfile[] = [];
+
+        if (Array.isArray(payload)) {
+          tutorData = payload as TutorProfile[];
+        } else if (
+          payload &&
+          typeof payload === "object" &&
+          "data" in payload &&
+          Array.isArray((payload as { data: unknown }).data)
+        ) {
+          tutorData = (payload as { data: TutorProfile[] }).data;
+        }
+
         setTutors(tutorData);
       }
 
@@ -153,7 +167,12 @@ export default function TutorExploreClient({
 
   return (
     <main className="app-shell min-h-screen py-12">
-      <section className="section-wrap space-y-6">
+      <motion.section
+        className="section-wrap space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <div>
           <h1 className="text-4xl font-bold">{title}</h1>
           <p className="mt-2 text-muted-foreground">{description}</p>
@@ -264,7 +283,7 @@ export default function TutorExploreClient({
         )}
 
         {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 8 }).map((_, index) => (
               <Card key={index} className="uniform-card">
                 <CardContent className="space-y-4 p-4">
@@ -285,7 +304,12 @@ export default function TutorExploreClient({
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+            >
               {paginatedTutors.map((tutor: TutorProfile) => {
                 const tutorRating = tutor.averageRating || tutor.rating || 0;
                 const tutorCategories =
@@ -293,7 +317,12 @@ export default function TutorExploreClient({
                 const categoryText = tutorCategories.join(", ") || tutor.education || "General";
 
                 return (
-                  <Card key={tutor.id} className="uniform-card h-full overflow-hidden">
+                  <motion.div
+                    key={tutor.id}
+                    whileHover={{ y: -6, scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                  <Card className="uniform-card h-full overflow-hidden">
                     <CardContent className="flex h-full flex-col p-4">
                       <img
                         src={`https://picsum.photos/seed/tutor-${tutor.id}/640/420`}
@@ -326,9 +355,10 @@ export default function TutorExploreClient({
                       </Button>
                     </CardContent>
                   </Card>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
 
             <div className="flex items-center justify-center gap-2 pt-2">
               <Button
@@ -351,7 +381,7 @@ export default function TutorExploreClient({
             </div>
           </>
         )}
-      </section>
+      </motion.section>
     </main>
   );
 }

@@ -1,7 +1,14 @@
+import { motion } from "framer-motion";
+
 export default function PrivacyPage() {
   return (
     <main className="app-shell min-h-screen py-14">
-      <section className="section-wrap max-w-3xl space-y-8">
+      <motion.section
+        className="section-wrap max-w-3xl space-y-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <div>
           <h1 className="text-4xl font-bold">Privacy Policy</h1>
           <p className="mt-3 text-muted-foreground">
@@ -29,7 +36,7 @@ export default function PrivacyPage() {
             We use standard access controls and retain data only as long as necessary for service and compliance needs.
           </p>
         </article>
-      </section>
+      </motion.section>
     </main>
   );
 }

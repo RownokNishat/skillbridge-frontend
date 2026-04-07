@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const posts = [
   {
@@ -26,7 +27,12 @@ const posts = [
 export default function BlogPage() {
   return (
     <main className="app-shell min-h-screen py-14">
-      <section className="section-wrap">
+      <motion.section
+        className="section-wrap"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <h1 className="text-4xl font-bold">SkillBridge Blog</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Actionable learning strategies, tutor insights, and student success frameworks.
@@ -34,7 +40,8 @@ export default function BlogPage() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {posts.map((post) => (
-            <Card key={post.title} className="uniform-card h-full">
+            <motion.div key={post.title} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}>
+            <Card className="uniform-card h-full">
               <CardHeader>
                 <p className="text-sm text-muted-foreground">{post.date}</p>
                 <CardTitle>{post.title}</CardTitle>
@@ -46,9 +53,10 @@ export default function BlogPage() {
                 </Button>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
     </main>
   );
 }

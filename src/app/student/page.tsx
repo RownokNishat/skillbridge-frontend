@@ -48,7 +48,7 @@ export default function StudentDashboard() {
         <div>
           <h1 className="text-4xl font-bold mb-2">
             Student{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Dashboard
             </span>
           </h1>
@@ -74,7 +74,7 @@ export default function StudentDashboard() {
         <div>
           <h1 className="text-4xl font-bold mb-2">
             Student{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Dashboard
             </span>
           </h1>
@@ -143,7 +143,7 @@ export default function StudentDashboard() {
       <div>
         <h1 className="text-4xl font-bold mb-2">
           Welcome back,{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {profile?.name}
           </span>
         </h1>
@@ -169,7 +169,7 @@ export default function StudentDashboard() {
                     </p>
                   </div>
                   <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}
+                    className={`p-3 rounded-xl bg-linear-to-br ${stat.color}`}
                   >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
@@ -188,13 +188,25 @@ export default function StudentDashboard() {
         <CardContent>
           <div className="flex h-48 items-end gap-4">
             {progressData.map((value, idx) => (
-              <div key={idx} className="flex flex-1 flex-col items-center gap-2">
+              <div
+                key={idx}
+                className="flex flex-1 flex-col items-center gap-2"
+              >
                 <div
-                  className="w-full rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-500"
-                  style={{ height: `${(value / maxProgress) * 100}%` }}
+                  className="w-full rounded-t-md bg-linear-to-t from-blue-600 to-cyan-500"
+                  style={{
+                    height: `${(value / maxProgress) * 100}%`,
+                    minHeight: "10px",
+                  }}
                 />
                 <span className="text-xs text-muted-foreground">
-                  {idx === 0 ? "Bookings" : idx === 1 ? "Upcoming" : idx === 2 ? "Completed" : "Reviews"}
+                  {idx === 0
+                    ? "Bookings"
+                    : idx === 1
+                      ? "Upcoming"
+                      : idx === 2
+                        ? "Completed"
+                        : "Reviews"}
                 </span>
               </div>
             ))}
@@ -230,7 +242,7 @@ export default function StudentDashboard() {
                   className="flex items-center justify-between p-4 border-2 rounded-lg hover:border-blue-500 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
                       {booking.tutor?.name?.charAt(0) || "T"}
                     </div>
                     <div>
@@ -279,7 +291,7 @@ export default function StudentDashboard() {
           <div className="grid md:grid-cols-3 gap-4">
             <Button
               asChild
-              className="h-20 bg-gradient-to-r from-blue-600 to-indigo-600"
+              className="h-20 bg-linear-to-r from-blue-600 to-indigo-600"
             >
               <Link href="/student/tutors">
                 <Search className="mr-2" />
