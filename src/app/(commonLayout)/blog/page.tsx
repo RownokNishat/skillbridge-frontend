@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,24 +37,29 @@ export default function BlogPage() {
       >
         <h1 className="text-4xl font-bold">SkillBridge Blog</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Actionable learning strategies, tutor insights, and student success frameworks.
+          Actionable learning strategies, tutor insights, and student success
+          frameworks.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {posts.map((post) => (
-            <motion.div key={post.title} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}>
-            <Card className="uniform-card h-full">
-              <CardHeader>
-                <p className="text-sm text-muted-foreground">{post.date}</p>
-                <CardTitle>{post.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex h-full flex-col">
-                <p className="flex-1 text-muted-foreground">{post.excerpt}</p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link href="/contact">Request Full Article</Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <motion.div
+              key={post.title}
+              whileHover={{ y: -6 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="uniform-card h-full">
+                <CardHeader>
+                  <p className="text-sm text-muted-foreground">{post.date}</p>
+                  <CardTitle>{post.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex h-full flex-col">
+                  <p className="flex-1 text-muted-foreground">{post.excerpt}</p>
+                  <Button asChild variant="outline" className="mt-4">
+                    <Link href="/contact">Request Full Article</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
